@@ -63,19 +63,13 @@ export default function Navbar() {
     >
       <List>
         {navItems.map((item) => (
-          <ListItem button key={item.title} component={Link} href={item.path}>
+          <ListItem key={item.title} component={Link} href={item.path}>
             <ListItemText primary={item.title} />
           </ListItem>
         ))}
         {user &&
           userOnlyItems.map((item) => (
-            <ListItem
-              button
-              key={item.title}
-              component={Link}
-              href={item.path}
-              target={item.target}
-            >
+            <ListItem key={item.title} component={Link} href={item.path}>
               <ListItemText primary={item.title} />
             </ListItem>
           ))}
@@ -121,7 +115,6 @@ export default function Navbar() {
                   color="inherit"
                   component={Link}
                   href={item.path}
-                  target={item.target}
                   sx={{ mx: 1 }}
                 >
                   {item.title}
