@@ -1,36 +1,44 @@
 {
   "name": "gameboxd-api",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "Welcome to the GBXD API project. This project allows users to add, view, and query games in a Firebase Firestore database. It also includes an interface for administrators and an API for interacting with the database.",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
   "scripts": {
     "dev": "next dev",
-    "build": "next build --legacy-peer-deps",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^6.0.2",
     "@mui/material": "^6.0.2",
-    "@mui/x-date-pickers": "^6.18.2",
+    "@mui/x-date-pickers": "^7.15.0",
     "axios": "^1.7.7",
-    "date-fns": "^2.30.0",
+    "date-fns": "^3.6.0",
+    "dayjs": "^1.11.13",
     "firebase": "^10.13.1",
     "framer-motion": "^11.4.0",
-    "next": "14.2.7",
-    "react": "^18",
-    "react-dom": "^18",
+    "next": "^14.2.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-firebase-hooks": "^5.1.1"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.7",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "@types/node": "^22.5.2",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.7",
+    "postcss": "^8.4.44",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.4"
   }
 }
