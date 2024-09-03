@@ -61,7 +61,7 @@ export default function UserProfile() {
 
   return (
     <div>
-      <h1>User's Games</h1>
+      <h1>Users Games</h1>
       {games.length === 0 ? (
         <p>No games added by this user.</p>
       ) : (
