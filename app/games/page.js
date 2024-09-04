@@ -19,7 +19,7 @@ import {
 } from "@mui/material";
 import { CalendarToday, Person, Gamepad, Category } from "@mui/icons-material";
 import Navbar from "../components/Navbar";
-import { db } from "../lib/firebase"; // Importa la instancia de Firebase
+import { db } from "../../lib/firebase";
 import { collection, onSnapshot } from "firebase/firestore"; // Importa el método onSnapshot
 
 const darkTheme = createTheme({
