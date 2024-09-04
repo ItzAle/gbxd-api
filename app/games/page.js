@@ -20,7 +20,8 @@ import {
 import { CalendarToday, Person, Gamepad, Category } from "@mui/icons-material";
 import Navbar from "../components/Navbar";
 import { db } from "../../lib/firebase";
-import { collection, onSnapshot } from "firebase/firestore"; // Importa el método onSnapshot
+import { collection, onSnapshot } from "firebase/firestore";
+import placeholderHover from "../../src/img/placeholder-cover.jpg";
 
 const darkTheme = createTheme({
   palette: {
@@ -71,10 +72,10 @@ const GamesList = () => {
         <CardMedia
           component="img"
           height="140"
-          image={game.coverImageUrl || "/placeholder-cover.jpg"}
+          image={game.coverImageUrl || { placeholderHover }}
           alt={game.name}
           onError={(e) => {
-            e.target.src = "/placeholder-cover.jpg";
+            e.target.src = { placeholderHover };
           }}
         />
         <CardContent sx={{ flexGrow: 1 }}>

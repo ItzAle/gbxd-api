@@ -20,6 +20,8 @@ import {
   CircularProgress,
   InputAdornment,
   IconButton,
+  List,
+  ListItem,
 } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -146,6 +148,19 @@ const AddGame = () => {
     );
   };
 
+  const validateUrl = (url) => {
+    const pattern = new RegExp(
+      "^(https?:\\/\\/)?" + // protocol
+        "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
+        "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
+        "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
+        "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
+        "(\\#[-a-z\\d_]*)?$",
+      "i"
+    ); // fragment locator
+    return !!pattern.test(url);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -159,6 +174,7 @@ const AddGame = () => {
       errors.push("At least one platform must be selected");
     if (genres.length === 0) errors.push("At least one genre must be selected");
     if (!coverImageUrl) errors.push("Cover image URL is required");
+    if (!validateUrl(coverImageUrl)) errors.push("Invalid cover image URL");
 
     if (errors.length > 0) {
       setErrors(errors);
@@ -302,6 +318,12 @@ const AddGame = () => {
               value={coverImageUrl}
               onChange={(e) => setCoverImageUrl(e.target.value)}
               margin="normal"
+              error={coverImageUrl !== "" && !validateUrl(coverImageUrl)}
+              helperText={
+                coverImageUrl !== "" && !validateUrl(coverImageUrl)
+                  ? "Invalid URL"
+                  : ""
+              }
             />
             <TextField
               fullWidth
@@ -425,18 +447,21 @@ const AddGame = () => {
               ),
             }}
           />
-          {filteredGenres.map((genre) => (
-            <FormControlLabel
-              key={genre}
-              control={
-                <Checkbox
-                  checked={genres.includes(genre)}
-                  onChange={() => handleGenreSelection(genre)}
+          <List>
+            {filteredGenres.map((genre) => (
+              <ListItem key={genre} disablePadding>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={genres.includes(genre)}
+                      onChange={() => handleGenreSelection(genre)}
+                    />
+                  }
+                  label={genre}
                 />
-              }
-              label={genre}
-            />
-          ))}
+              </ListItem>
+            ))}
+          </List>
           <Button onClick={() => setShowGenresModal(false)} sx={{ mt: 2 }}>
             Done
           </Button>
@@ -478,18 +503,21 @@ const AddGame = () => {
               ),
             }}
           />
-          {filteredPlatforms.map((platform) => (
-            <FormControlLabel
-              key={platform}
-              control={
-                <Checkbox
-                  checked={platforms.includes(platform)}
-                  onChange={() => handlePlatformSelection(platform)}
+          <List>
+            {filteredPlatforms.map((platform) => (
+              <ListItem key={platform} disablePadding>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={platforms.includes(platform)}
+                      onChange={() => handlePlatformSelection(platform)}
+                    />
+                  }
+                  label={platform}
                 />
-              }
-              label={platform}
-            />
-          ))}
+              </ListItem>
+            ))}
+          </List>
           <Button onClick={() => setShowPlatformsModal(false)} sx={{ mt: 2 }}>
             Done
           </Button>
