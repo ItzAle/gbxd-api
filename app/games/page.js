@@ -33,17 +33,6 @@ const darkTheme = createTheme({
   },
 });
 
-export async function getStaticProps() {
-  // Aquí llamas a tu función para obtener los datos de Firestore.
-  const games = await fetchGamesFromFirestore();
-
-  return {
-    props: {
-      games,
-    },
-    revalidate: 60, // ISR: Revalida cada 60 segundos (puedes ajustarlo)
-  };
-}
 
 const GamesList = () => {
   const [games, setGames] = useState([]);

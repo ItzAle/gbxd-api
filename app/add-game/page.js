@@ -27,17 +27,6 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import SearchIcon from "@mui/icons-material/Search";
 import Navbar from "../components/Navbar";
 
-export async function getStaticProps() {
-  // Aquí llamas a tu función para obtener los datos de Firestore.
-  const games = await fetchGamesFromFirestore();
-
-  return {
-    props: {
-      games,
-    },
-    revalidate: 60, // ISR: Revalida cada 60 segundos (puedes ajustarlo)
-  };
-}
 const darkTheme = createTheme({
   palette: {
     mode: "dark",
