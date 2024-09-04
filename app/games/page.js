@@ -19,6 +19,8 @@ import {
 } from "@mui/material";
 import { CalendarToday, Person, Gamepad, Category } from "@mui/icons-material";
 import Navbar from "../components/Navbar";
+import { db } from "../lib/firebase"; // Importa la instancia de Firebase
+import { collection, onSnapshot } from "firebase/firestore"; // Importa el método onSnapshot
 
 const darkTheme = createTheme({
   palette: {
@@ -33,31 +35,30 @@ const darkTheme = createTheme({
   },
 });
 
-
 const GamesList = () => {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchGames = async () => {
-      try {
-        const res = await fetch("/api/get-games");
-        const data = await res.json();
-
-        if (res.ok) {
-          setGames(data);
-        } else {
-          setError(data.error || "Failed to fetch games");
-        }
-      } catch (err) {
+    const unsubscribe = onSnapshot(
+      collection(db, "games"),
+      (snapshot) => {
+        const gamesData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setGames(gamesData);
+        setLoading(false);
+      },
+      (error) => {
         setError("Failed to fetch games");
-      } finally {
         setLoading(false);
       }
-    };
+    );
 
-    fetchGames();
+    // Cleanup the listener on unmount
+    return () => unsubscribe();
   }, []);
 
   const GameCard = ({ game }) => (
