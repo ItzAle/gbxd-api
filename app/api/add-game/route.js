@@ -1,5 +1,6 @@
 import { db } from "../../../lib/firebase";
 import { collection, addDoc } from "firebase/firestore";
+import slugify from 'slugify';
 
 // Handler para el POST request para añadir un juego
 export async function POST(req) {
@@ -33,9 +34,13 @@ export async function POST(req) {
       );
     }
 
+    // Generar un slug para el juego
+    const slug = slugify(name, { lower: true, strict: true });
+
     // Añadir el nuevo documento a la colección de juegos en Firestore
     await addDoc(collection(db, "games"), {
       name,
+      slug,
       releaseDate,
       description,
       publisher,

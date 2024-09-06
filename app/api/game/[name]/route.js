@@ -18,13 +18,14 @@ export async function GET(request, { params }) {
   }
 
   const { name } = params;
+  // Ahora 'name' es el slug, no necesitamos decodificarlo
 
   try {
     // Crear una referencia a la colección de juegos en Firebase
     const gamesRef = collection(db, "games");
 
-    // Crear una consulta para buscar el juego por nombre
-    const q = query(gamesRef, where("name", "==", name));
+    // Buscar por slug
+    const q = query(gamesRef, where("slug", "==", name));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
@@ -34,7 +35,7 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Asumimos que el nombre del juego es único, por lo tanto obtenemos el primer documento
+    // Asumimos que el slug del juego es único, por lo tanto obtenemos el primer documento
     let gameData = null;
     querySnapshot.forEach((doc) => {
       gameData = doc.data();
