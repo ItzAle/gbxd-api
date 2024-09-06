@@ -36,6 +36,11 @@ import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 import Navbar from "../components/Navbar";
 import dayjs from "dayjs";
+import { genresList } from "../constants/genres";
+import { platformsList } from "../constants/platforms";
+import BasicInfoForm from "../components/BasicInfoForm";
+import GenrePlatformSelector from "../components/GenrePlatformSelector";
+import ReviewInfo from "../components/ReviewInfo";
 
 const darkTheme = createTheme({
   palette: {
@@ -49,52 +54,6 @@ const darkTheme = createTheme({
     },
   },
 });
-
-const genresList = [
-  "Action",
-  "Adventure",
-  "RPG",
-  "Strategy",
-  "Shooter",
-  "Puzzle",
-  "Horror",
-  "Simulation",
-  "Sports",
-  "Racing",
-  "Fighting",
-  "Platformer",
-  "Stealth",
-  "Survival",
-  "Battle Royale",
-  "MOBA",
-  "Card Game",
-  "Educational",
-  "Music/Rhythm",
-  "Visual Novel",
-];
-
-const platformsList = [
-  "PC",
-  "PlayStation 4",
-  "PlayStation 5",
-  "Xbox One",
-  "Xbox Series X/S",
-  "Nintendo Switch",
-  "Mobile",
-  "PlayStation 3",
-  "Xbox 360",
-  "Wii U",
-  "Nintendo 3DS",
-  "PlayStation Vita",
-  "Google Stadia",
-  "Amazon Luna",
-  "Oculus Quest",
-  "HTC Vive",
-  "Nintendo Wii",
-  "Sega Dreamcast",
-  "PlayStation 2",
-  "Xbox",
-];
 
 const AddGame = () => {
   const [user, loading] = useAuthState(auth);
@@ -337,84 +296,19 @@ const AddGame = () => {
     switch (step) {
       case 0:
         return (
-          <>
-            <Box sx={{ mb: 2, display: "flex", justifyContent: "center" }}>
-              {coverImageUrl && validateUrl(coverImageUrl) ? (
-                <img
-                  src={coverImageUrl}
-                  alt="Game cover"
-                  style={{
-                    width: "400px",
-                    height: "300px",
-                    objectFit: "cover",
-                  }}
-                />
-              ) : (
-                <Box
-                  sx={{
-                    width: "400px",
-                    height: "300px",
-                    backgroundColor: "#333",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#fff",
-                    fontSize: "1.5rem",
-                  }}
-                >
-                  No image available
-                </Box>
-              )}
-            </Box>
-            <TextField
-              fullWidth
-              label="Cover image URL"
-              value={coverImageUrl}
-              onChange={(e) => setCoverImageUrl(e.target.value)}
-              margin="normal"
-              error={coverImageUrl !== "" && !validateUrl(coverImageUrl)}
-              helperText={
-                coverImageUrl !== "" && !validateUrl(coverImageUrl)
-                  ? "Invalid URL"
-                  : ""
-              }
-            />
-            <TextField
-              fullWidth
-              label="Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              margin="normal"
-              required
-            />
-            <TextField
-              fullWidth
-              label="Publisher"
-              value={publisher}
-              onChange={(e) => setPublisher(e.target.value)}
-              margin="normal"
-              required
-            />
-            <TextField
-              fullWidth
-              label="Developer"
-              value={developer}
-              onChange={(e) => setDeveloper(e.target.value)}
-              margin="normal"
-              required
-            />
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                label="Release date"
-                value={releaseDate}
-                onChange={(newValue) => setReleaseDate(newValue)}
-                renderInput={(params) => (
-                  <TextField {...params} fullWidth margin="normal" required />
-                )}
-                format="DD-MM-YYYY"
-              />
-            </LocalizationProvider>
-          </>
+          <BasicInfoForm
+            name={name}
+            setName={setName}
+            publisher={publisher}
+            setPublisher={setPublisher}
+            developer={developer}
+            setDeveloper={setDeveloper}
+            releaseDate={releaseDate}
+            setReleaseDate={setReleaseDate}
+            coverImageUrl={coverImageUrl}
+            setCoverImageUrl={setCoverImageUrl}
+            validateUrl={validateUrl}
+          />
         );
       case 1:
         return (
@@ -431,122 +325,32 @@ const AddGame = () => {
         );
       case 2:
         return (
-          <>
-            <Button
-              variant="contained"
-              onClick={() => setShowGenresModal(true)}
-            >
-              Add genres
-            </Button>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-              {genres.map((genre) => (
-                <Chip
-                  key={genre}
-                  label={genre}
-                  onDelete={() => handleGenreSelection(genre)}
-                />
-              ))}
-            </Box>
-            <Button
-              variant="contained"
-              onClick={() => setShowPlatformsModal(true)}
-              sx={{ mt: 2 }}
-            >
-              Add platforms
-            </Button>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-              {platforms.map((platform) => (
-                <Chip
-                  key={platform}
-                  label={platform}
-                  onDelete={() => handlePlatformSelection(platform)}
-                />
-              ))}
-            </Box>
-          </>
+          <GenrePlatformSelector
+            genres={genres}
+            platforms={platforms}
+            setShowGenresModal={setShowGenresModal}
+            setShowPlatformsModal={setShowPlatformsModal}
+            handleGenreSelection={handleGenreSelection}
+            handlePlatformSelection={handlePlatformSelection}
+          />
         );
       case 3:
         return (
-          <>
-            <Typography variant="h6" gutterBottom>
-              Review your information
-            </Typography>
-            <Typography variant="body1" paragraph>
-              <strong>Name:</strong> {name}
-            </Typography>
-            <Typography variant="body1" paragraph>
-              <strong>Publisher:</strong> {publisher}
-            </Typography>
-            <Typography variant="body1" paragraph>
-              <strong>Developer:</strong> {developer}
-            </Typography>
-            <Typography variant="body1" paragraph>
-              <strong>Release date:</strong>{" "}
-              {releaseDate ? dayjs(releaseDate).format("DD-MM-YYYY") : "N/A"}
-            </Typography>
-            <Typography variant="body1" paragraph>
-              <strong>Description:</strong> {description}
-            </Typography>
-            <Typography variant="body1" paragraph>
-              <strong>Platforms:</strong> {platforms.join(", ")}
-            </Typography>
-            <Typography variant="body1" paragraph>
-              <strong>Genres:</strong> {genres.join(", ")}
-            </Typography>
-            <Typography variant="body1" paragraph>
-              <strong>Cover image URL:</strong> {coverImageUrl}
-            </Typography>
-            <Box sx={{ mt: 2 }}>
-              {coverImageUrl && validateUrl(coverImageUrl) ? (
-                <img
-                  src={coverImageUrl}
-                  alt="Game cover"
-                  style={{
-                    width: "400px",
-                    height: "300px",
-                    objectFit: "cover",
-                  }}
-                />
-              ) : (
-                <Box
-                  sx={{
-                    width: "400px",
-                    height: "300px",
-                    backgroundColor: "#333",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#fff",
-                    fontSize: "1.5rem",
-                  }}
-                >
-                  No image available
-                </Box>
-              )}
-            </Box>
-            <Box
-              sx={{ mt: 3, display: "flex", justifyContent: "space-between" }}
-            >
-              <Button onClick={handleBack}>Back to edit</Button>
-              <Button
-                onClick={handleSubmit}
-                variant="contained"
-                color="primary"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Submitting..." : "Submit"}
-              </Button>
-            </Box>
-            {errors.length > 0 && (
-              <Box sx={{ mt: 2, color: "error.main" }}>
-                {errors.map((error, index) => (
-                  <Typography key={index} variant="body2">
-                    {error}
-                  </Typography>
-                ))}
-              </Box>
-            )}
-          </>
+          <ReviewInfo
+            name={name}
+            publisher={publisher}
+            developer={developer}
+            releaseDate={releaseDate}
+            description={description}
+            platforms={platforms}
+            genres={genres}
+            coverImageUrl={coverImageUrl}
+            validateUrl={validateUrl}
+            handleBack={handleBack}
+            handleSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            errors={errors}
+          />
         );
       default:
         return "Unknown step";

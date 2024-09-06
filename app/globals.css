@@ -7,28 +7,30 @@
 
 root {
   --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --background-light: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  --background-dark: #111827; /* Equivalente a bg-gray-900 en Tailwind */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
   }
 }
+
 * {
   font-family: "Poppins", sans-serif;
 }
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background: var(--background-light);
+  min-height: 100vh;
+  background-attachment: fixed;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: var(--background-dark);
+  }
 }
 
 @layer utilities {
