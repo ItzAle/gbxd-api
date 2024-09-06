@@ -90,9 +90,9 @@ export default function Profile() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setEditingGame(prev => ({
+    setEditingGame((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -100,9 +100,9 @@ export default function Profile() {
     const {
       target: { value },
     } = event;
-    setEditingGame(prev => ({
+    setEditingGame((prev) => ({
       ...prev,
-      [fieldName]: typeof value === 'string' ? value.split(',') : value,
+      [fieldName]: typeof value === "string" ? value.split(",") : value,
     }));
   };
 
@@ -112,7 +112,9 @@ export default function Profile() {
       const oldSlug = updatedGame.slug;
 
       // Actualizar el slug si el nombre ha cambiado
-      if (updatedGame.name !== games.find(g => g.id === editingGame.id).name) {
+      if (
+        updatedGame.name !== games.find((g) => g.id === editingGame.id).name
+      ) {
         updatedGame.slug = slugify(updatedGame.name, {
           lower: true,
           strict: true,
@@ -125,24 +127,24 @@ export default function Profile() {
       // Actualizar la API
       try {
         const response = await fetch(`/api/game/${oldSlug}`, {
-          method: 'PUT',
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             ...updatedGame,
-            oldSlug: oldSlug
+            oldSlug: oldSlug,
           }),
         });
 
         if (!response.ok) {
-          throw new Error('Failed to update game in API');
+          throw new Error("Failed to update game in API");
         }
 
         const result = await response.json();
-        console.log('API update result:', result);
+        console.log("API update result:", result);
       } catch (error) {
-        console.error('Error updating game in API:', error);
+        console.error("Error updating game in API:", error);
       }
 
       setOpen(false);
@@ -154,17 +156,17 @@ export default function Profile() {
     if (window.confirm(`Are you sure you want to delete ${game.name}?`)) {
       try {
         const response = await fetch(`/api/game/${game.slug}`, {
-          method: 'DELETE',
+          method: "DELETE",
         });
 
         if (!response.ok) {
-          throw new Error('Failed to delete game from API');
+          throw new Error("Failed to delete game from API");
         }
 
-        console.log('Game deleted successfully');
+        console.log("Game deleted successfully");
         await fetchUserGames(); // Refetch games to update the list
       } catch (error) {
-        console.error('Error deleting game:', error);
+        console.error("Error deleting game:", error);
       }
     }
   };
@@ -186,7 +188,7 @@ export default function Profile() {
           Your Profile
         </Typography>
         <Typography variant="h6" gutterBottom>
-          Games you've added:
+          Games you&apos;ve added:
         </Typography>
         <Grid container spacing={4}>
           {games.map((game) => (
@@ -206,7 +208,11 @@ export default function Profile() {
                   <Button size="small" onClick={() => handleEditClick(game)}>
                     Edit
                   </Button>
-                  <Button size="small" color="error" onClick={() => handleDeleteClick(game)}>
+                  <Button
+                    size="small"
+                    color="error"
+                    onClick={() => handleDeleteClick(game)}
+                  >
                     Delete
                   </Button>
                 </CardActions>
@@ -286,10 +292,10 @@ export default function Profile() {
               labelId="platforms-label"
               multiple
               value={editingGame?.platforms || []}
-              onChange={(e) => handleMultipleChange(e, 'platforms')}
+              onChange={(e) => handleMultipleChange(e, "platforms")}
               input={<OutlinedInput label="Platforms" />}
               renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                   {selected.map((value) => (
                     <Chip key={value} label={value} />
                   ))}
@@ -309,10 +315,10 @@ export default function Profile() {
               labelId="genres-label"
               multiple
               value={editingGame?.genres || []}
-              onChange={(e) => handleMultipleChange(e, 'genres')}
+              onChange={(e) => handleMultipleChange(e, "genres")}
               input={<OutlinedInput label="Genres" />}
               renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                   {selected.map((value) => (
                     <Chip key={value} label={value} />
                   ))}
