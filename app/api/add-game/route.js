@@ -15,6 +15,7 @@ export async function POST(req) {
       platforms,
       genres,
       coverImageUrl,
+      userId, // Añade esto
     } = await req.json();
 
     // Validar que todos los campos necesarios estén presentes
@@ -48,6 +49,7 @@ export async function POST(req) {
       platforms,
       genres,
       coverImageUrl,
+      addedBy: userId, // Añade esto
     });
 
     // Responder con un mensaje de éxito

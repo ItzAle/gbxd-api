@@ -202,6 +202,7 @@ const AddGame = () => {
       platforms,
       genres,
       coverImageUrl,
+      userId: user.uid,
     };
 
     try {

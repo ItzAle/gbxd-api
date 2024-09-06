@@ -39,11 +39,11 @@ export default function Navbar() {
     setMobileOpen(!mobileOpen);
   };
 
-  //   const handleProfileClick = () => {
-  //     if (user) {
-  //       router.push(`/profile/${user.uid}`);
-  //     }
-  //   };
+  const handleProfileClick = () => {
+    if (user) {
+      router.push(`/profile/`);
+    }
+  };
 
   const navItems = [
     { title: "Home", path: "/" },
@@ -128,13 +128,13 @@ export default function Navbar() {
               src={user.photoURL || undefined}
               alt={user.displayName || "User avatar"}
               sx={{ width: 32, height: 32, mr: 1 }}
-              //   onClick={handleProfileClick}
+              onClick={handleProfileClick}
               style={{ cursor: "pointer" }}
             />
             <Typography
               variant="body2"
               sx={{ mr: 2, cursor: "pointer" }}
-              //   onClick={handleProfileClick}
+              onClick={handleProfileClick}
             >
               {user.displayName || user.email}
             </Typography>
