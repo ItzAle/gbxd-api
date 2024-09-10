@@ -39,6 +39,7 @@ import Navbar from "../components/Navbar";
 import slugify from "slugify";
 import { genresList } from "../constants/genres";
 import { platformsList } from "../constants/platforms";
+import { useRouter } from 'next/router';
 
 const darkTheme = createTheme({
   palette: {
@@ -53,8 +54,12 @@ const darkTheme = createTheme({
   },
 });
 
+// Define el UID autorizado (preferiblemente en una variable de entorno)
+const AUTHORIZED_UID = process.env.NEXT_PUBLIC_AUTHORIZED_UID || 'tu-uid-autorizado';
+
 export default function Profile() {
   const [user] = useAuthState(auth);
+  const router = useRouter();
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingGame, setEditingGame] = useState(null);
@@ -62,9 +67,14 @@ export default function Profile() {
 
   useEffect(() => {
     if (user) {
-      fetchUserGames();
+      if (user.uid !== AUTHORIZED_UID) {
+        // Redirigir a la página principal si el usuario no está autorizado
+        router.push('/');
+      } else {
+        fetchUserGames();
+      }
     }
-  }, [user]);
+  }, [user, router]);
 
   const fetchUserGames = async () => {
     setLoading(true);
@@ -171,6 +181,30 @@ export default function Profile() {
     }
   };
 
+  // Añade una nueva sección para el scraper solo si el usuario está autorizado
+  const renderScraperSection = () => {
+    if (user && user.uid === AUTHORIZED_UID) {
+      return (
+        <Box mt={4}>
+          <Typography variant="h5" gutterBottom>
+            Game Scraper
+          </Typography>
+          {/* Aquí puedes añadir la interfaz para tu scraper */}
+          <Button variant="contained" color="primary" onClick={handleScrape}>
+            Iniciar Scraping
+          </Button>
+        </Box>
+      );
+    }
+    return null;
+  };
+
+  // Función para manejar el scraping (implementa la lógica aquí)
+  const handleScrape = () => {
+    // Implementa tu lógica de scraping aquí
+    console.log('Iniciando scraping...');
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -220,6 +254,7 @@ export default function Profile() {
             </Grid>
           ))}
         </Grid>
+        {renderScraperSection()}
       </Container>
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
         <DialogTitle>Edit Game</DialogTitle>
