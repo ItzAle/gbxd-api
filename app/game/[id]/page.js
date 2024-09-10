@@ -37,6 +37,7 @@ const GameDetail = () => {
   const [game, setGame] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [plataformas, setPlataformas] = useState([]); // Cambiar a plataformas
 
   useEffect(() => {
     const fetchGame = async () => {
@@ -45,7 +46,9 @@ const GameDetail = () => {
         const gameSnap = await getDoc(gameRef);
 
         if (gameSnap.exists()) {
-          setGame({ id: gameSnap.id, ...gameSnap.data() });
+          const gameData = { id: gameSnap.id, ...gameSnap.data() };
+          setGame(gameData);
+          setPlataformas(gameData.platforms || []); // Asignar plataformas desde los datos del juego
         } else {
           setError("Juego no encontrado");
         }
@@ -123,6 +126,32 @@ const GameDetail = () => {
             </Typography>
           </Box>
         </Box>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h6">Platforms:</Typography>
+          {plataformas.map((plataforma, index) => (
+            <Chip key={index} label={plataforma} sx={{ mr: 0.5, mb: 0.5 }} />
+          ))}
+        </Box>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h6">Store Links:</Typography>
+          {game.storeLinks &&
+            Object.entries(game.storeLinks).map(([key, link]) =>
+              link ? (
+                <Box key={key} sx={{ mb: 1 }}>
+                  <a href={link} target="_blank" rel="noopener noreferrer">
+                    <button>{key}</button>
+                  </a>
+                </Box>
+              ) : null
+            )}
+        </Box>
+        {game.link && ( // Verificar si hay un enlace
+          <Box sx={{ mb: 2 }}>
+            <a href={game.link} target="_blank" rel="noopener noreferrer">
+              <button></button>
+            </a>
+          </Box>
+        )}
       </Container>
     </ThemeProvider>
   );
