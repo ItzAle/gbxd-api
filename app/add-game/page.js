@@ -41,6 +41,7 @@ import { platformsList } from "../constants/platforms";
 import BasicInfoForm from "../components/BasicInfoForm";
 import GenrePlatformSelector from "../components/GenrePlatformSelector";
 import ReviewInfo from "../components/ReviewInfo";
+import StoreLinksForm from "../components/StoreLinksForm";
 
 const darkTheme = createTheme({
   palette: {
@@ -77,6 +78,14 @@ const AddGame = () => {
   const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [isNSFW, setIsNSFW] = useState(false);
+  const [storeLinks, setStoreLinks] = useState({
+    steam: "",
+    epicGames: "",
+    playStation: "",
+    xbox: "",
+    nintendoSwitch: "",
+  });
 
   useEffect(() => {
     if (!loading && !user) {
@@ -203,6 +212,8 @@ const AddGame = () => {
       genres,
       coverImageUrl,
       userId: user.uid,
+      isNSFW,
+      storeLinks,
     };
 
     try {
@@ -240,7 +251,13 @@ const AddGame = () => {
     platform.toLowerCase().includes(platformSearch.toLowerCase())
   );
 
-  const steps = ["Basic Info", "Description", "Genres & Platforms", "Review"];
+  const steps = [
+    "Basic Info",
+    "Description",
+    "Genres & Platforms",
+    "Store Links",
+    "Review",
+  ];
 
   const handleNext = () => {
     if (validateStep(activeStep)) {
@@ -272,6 +289,8 @@ const AddGame = () => {
         return description.trim() !== "";
       case 2:
         return genres.length > 0 && platforms.length > 0;
+      case 3:
+        return true;
       default:
         return true;
     }
@@ -287,6 +306,9 @@ const AddGame = () => {
         break;
       case "Genres & Platforms":
         setActiveStep(2);
+        break;
+      case "Store Links":
+        setActiveStep(3);
         break;
       default:
         break;
@@ -337,6 +359,16 @@ const AddGame = () => {
         );
       case 3:
         return (
+          <StoreLinksForm
+            isNSFW={isNSFW}
+            setIsNSFW={setIsNSFW}
+            storeLinks={storeLinks}
+            setStoreLinks={setStoreLinks}
+            platforms={platforms}
+          />
+        );
+      case 4:
+        return (
           <ReviewInfo
             name={name}
             publisher={publisher}
@@ -351,6 +383,8 @@ const AddGame = () => {
             handleSubmit={handleSubmit}
             isSubmitting={isSubmitting}
             errors={errors}
+            isNSFW={isNSFW}
+            storeLinks={storeLinks}
           />
         );
       default:
@@ -522,35 +556,6 @@ const AddGame = () => {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-
-      <Modal
-        open={isConfirmationVisible}
-        onClose={() => setIsConfirmationVisible(false)}
-        aria-labelledby="confirmation-modal-title"
-        aria-describedby="confirmation-modal-description"
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            border: "2px solid #000",
-            boxShadow: 24,
-            p: 4,
-          }}
-        >
-          <Typography id="confirmation-modal-title" variant="h6" component="h2">
-            Game added successfully
-          </Typography>
-          <Typography id="confirmation-modal-description" sx={{ mt: 2 }}>
-            Your game has been added to the database. Redirecting to the games
-            list...
-          </Typography>
-        </Box>
-      </Modal>
 
       <Snackbar
         open={snackbarOpen}

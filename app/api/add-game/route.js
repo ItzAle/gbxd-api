@@ -16,6 +16,8 @@ export async function POST(req) {
       genres,
       coverImageUrl,
       userId, // Añade esto
+      isNSFW,
+      storeLinks,
     } = await req.json();
 
     // Validar que todos los campos necesarios estén presentes
@@ -50,6 +52,8 @@ export async function POST(req) {
       genres,
       coverImageUrl,
       addedBy: userId, // Añade esto
+      isNSFW,
+      storeLinks,
     });
 
     // Responder con un mensaje de éxito
