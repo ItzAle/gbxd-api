@@ -1,45 +1,41 @@
+import { docClient } from "../../../../lib/aws-config";
+import { QueryCommand, UpdateCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { NextResponse } from "next/server";
-import { db } from "../../../../lib/firebase"; // Asegúrate de que esta ruta apunte a tu configuración de Firebase.
-import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
 
 export async function GET(request, { params }) {
-  // Configurar los encabezados CORS
   const headers = {
     "Access-Control-Allow-Credentials": "true",
-    "Access-Control-Allow-Origin": "*", // Cambia "*" por el dominio que deseas permitir en producción
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET,OPTIONS,PATCH,DELETE,POST,PUT",
     "Access-Control-Allow-Headers":
       "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
   };
 
-  // Manejar la solicitud OPTIONS para CORS (preflight)
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 200, headers });
   }
 
   const { name } = params;
-  // Ahora 'name' es el slug, no necesitamos decodificarlo
 
   try {
-    // Crear una referencia a la colección de juegos en Firebase
-    const gamesRef = collection(db, "games");
+    const command = new QueryCommand({
+      TableName: "games",
+      KeyConditionExpression: "slug = :slug",
+      ExpressionAttributeValues: {
+        ":slug": name,
+      },
+    });
 
-    // Buscar por slug
-    const q = query(gamesRef, where("slug", "==", name));
-    const querySnapshot = await getDocs(q);
+    const response = await docClient.send(command);
 
-    if (querySnapshot.empty) {
+    if (response.Items.length === 0) {
       return NextResponse.json(
         { error: "Game not found" },
         { status: 404, headers }
       );
     }
 
-    // Asumimos que el slug del juego es único, por lo tanto obtenemos el primer documento
-    let gameData = null;
-    querySnapshot.forEach((doc) => {
-      gameData = doc.data();
-    });
+    const gameData = response.Items[0];
 
     return NextResponse.json(gameData, { status: 200, headers });
   } catch (error) {
@@ -64,41 +60,33 @@ export async function PUT(request, { params }) {
     return new Response(null, { status: 200, headers });
   }
 
-  const { name } = params; // Este es el slug antiguo
+  const { name } = params;
   const updatedGame = await request.json();
-  const { oldSlug, ...gameData } = updatedGame; // Separamos el oldSlug del resto de los datos del juego
-
-  console.log('Updating game:', { oldSlug, newSlug: gameData.slug, name: gameData.name });
+  const { oldSlug, ...gameData } = updatedGame;
 
   try {
-    const gamesRef = collection(db, "games");
-    const q = query(gamesRef, where("slug", "==", oldSlug));
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      console.log('Game not found with slug:', oldSlug);
-      return NextResponse.json(
-        { error: "Game not found" },
-        { status: 404, headers }
-      );
-    }
-
-    let gameDoc = null;
-    querySnapshot.forEach((doc) => {
-      gameDoc = doc;
+    const updateCommand = new UpdateCommand({
+      TableName: "games",
+      Key: { slug: oldSlug },
+      UpdateExpression: "set #name = :name, description = :description, releaseDate = :releaseDate, publisher = :publisher, developer = :developer, platforms = :platforms, genres = :genres, coverImageUrl = :coverImageUrl, slug = :newSlug",
+      ExpressionAttributeNames: {
+        "#name": "name"
+      },
+      ExpressionAttributeValues: {
+        ":name": gameData.name,
+        ":description": gameData.description,
+        ":releaseDate": gameData.releaseDate,
+        ":publisher": gameData.publisher,
+        ":developer": gameData.developer,
+        ":platforms": gameData.platforms,
+        ":genres": gameData.genres,
+        ":coverImageUrl": gameData.coverImageUrl,
+        ":newSlug": gameData.slug
+      },
+      ReturnValues: "ALL_NEW"
     });
 
-    console.log('Updating game document:', gameDoc.id);
-
-    // Asegurarse de que el slug se actualice si el nombre ha cambiado
-    if (gameData.name !== gameDoc.data().name) {
-      gameData.slug = slugify(gameData.name, { lower: true, strict: true });
-    }
-
-    // Actualizamos el documento con los nuevos datos, incluyendo el nuevo slug si ha cambiado
-    await updateDoc(doc(db, "games", gameDoc.id), gameData);
-
-    console.log('Game updated successfully');
+    const result = await docClient.send(updateCommand);
 
     return NextResponse.json({ 
       message: "Game updated successfully",
@@ -126,29 +114,15 @@ export async function DELETE(request, { params }) {
     return new Response(null, { status: 200, headers });
   }
 
-  const { name } = params; // Este es el slug del juego a borrar
+  const { name } = params;
 
   try {
-    const gamesRef = collection(db, "games");
-    const q = query(gamesRef, where("slug", "==", name));
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      return NextResponse.json(
-        { error: "Game not found" },
-        { status: 404, headers }
-      );
-    }
-
-    let gameDoc = null;
-    querySnapshot.forEach((doc) => {
-      gameDoc = doc;
+    const deleteCommand = new DeleteCommand({
+      TableName: "games",
+      Key: { slug: name },
     });
 
-    // Borramos el documento
-    await deleteDoc(doc(db, "games", gameDoc.id));
-
-    console.log('Game deleted successfully');
+    await docClient.send(deleteCommand);
 
     return NextResponse.json({ 
       message: "Game deleted successfully"

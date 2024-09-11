@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { db } from '../../../lib/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { docClient } from '../../../lib/aws-config';
+import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 
 export const dynamic = 'force-dynamic';
 
@@ -13,15 +13,25 @@ export async function GET(request) {
   }
 
   try {
-    const gamesRef = collection(db, 'games');
-    const q = query(gamesRef, where('name', '==', name));
-    const querySnapshot = await getDocs(q);
+    const command = new QueryCommand({
+      TableName: "games",
+      KeyConditionExpression: "slug = :slug",
+      ExpressionAttributeValues: {
+        ":slug": name.toLowerCase(),
+      },
+      Limit: 1
+    });
 
-    const exists = !querySnapshot.empty;
+    const response = await docClient.send(command);
+
+    const exists = response.Items && response.Items.length > 0;
 
     return NextResponse.json({ exists });
   } catch (error) {
     console.error('Error checking game existence:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error checking game existence', 
+      details: error.message 
+    }, { status: 500 });
   }
 }

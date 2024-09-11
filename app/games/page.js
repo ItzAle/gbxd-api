@@ -19,11 +19,8 @@ import {
 } from "@mui/material";
 import { CalendarToday, Person, Gamepad, Category } from "@mui/icons-material";
 import Navbar from "../components/Navbar";
-import { db } from "../../lib/firebase";
-import { collection, onSnapshot } from "firebase/firestore";
 import placeholderHover from "../../src/img/placeholder-cover.jpg";
 import Link from "next/link";
-import { getGames } from "../api/games";
 
 const darkTheme = createTheme({
   palette: {
@@ -44,32 +41,31 @@ const GamesList = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      collection(db, "games"),
-      (snapshot) => {
-        const gamesData = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+    const fetchGames = async () => {
+      try {
+        const response = await fetch('/api/games');
+        if (!response.ok) {
+          throw new Error('Failed to fetch games');
+        }
+        const data = await response.json();
         // Ordenar los juegos por fecha de lanzamiento (más recientes primero)
-        const sortedGames = gamesData.sort(
+        const sortedGames = data.sort(
           (a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)
         );
         setGames(sortedGames);
-        setLoading(false);
-      },
-      (error) => {
+      } catch (error) {
+        console.error("Error fetching games:", error);
         setError("Failed to fetch games");
+      } finally {
         setLoading(false);
       }
-    );
+    };
 
-    // Cleanup the listener on unmount
-    return () => unsubscribe();
+    fetchGames();
   }, []);
 
   const GameCard = ({ game }) => (
-    <Link href={`/game/${game.id}`} passHref>
+    <Link href={`/game/${game.slug}`} passHref>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -79,10 +75,10 @@ const GamesList = () => {
           <CardMedia
             component="img"
             height="200"
-            image={game.coverImageUrl || { placeholderHover }}
+            image={game.coverImageUrl || placeholderHover}
             alt={game.name}
             onError={(e) => {
-              e.target.src = { placeholderHover };
+              e.target.src = placeholderHover;
             }}
             sx={{ objectFit: "cover" }}
           />
@@ -174,7 +170,7 @@ const GamesList = () => {
         ) : (
           <Grid container spacing={4}>
             {games.map((game) => (
-              <Grid item key={game.id} xs={12} sm={6} md={4}>
+              <Grid item key={game.slug} xs={12} sm={6} md={4}>
                 <GameCard game={game} />
               </Grid>
             ))}
