@@ -1,7 +1,14 @@
-import { NextResponse } from 'next/server';
-import { fetchGameData } from '@/app/utils/scraper';
-import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { NextResponse } from "next/server";
+import { fetchGameData } from "@/app/utils/scraper";
+import { db } from "@/lib/firebase";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
 
 export async function POST(request) {
   try {
@@ -19,7 +26,6 @@ export async function POST(request) {
 
         await updateDoc(doc(db, "games", docSnapshot.id), {
           ...updatedGameData,
-          addedBy: "RAWG API (Popular)",
         });
 
         updatedCount++;
@@ -29,11 +35,17 @@ export async function POST(request) {
       }
     }
 
-    return NextResponse.json({
-      message: `Updated ${updatedCount} games. Errors occurred for ${errorCount} games.`
-    }, { status: 200 });
+    return NextResponse.json(
+      {
+        message: `Updated ${updatedCount} games. Errors occurred for ${errorCount} games.`,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error updating games:", error);
-    return NextResponse.json({ error: "Error updating games: " + error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Error updating games: " + error.message },
+      { status: 500 }
+    );
   }
 }

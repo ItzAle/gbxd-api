@@ -21,14 +21,18 @@ import {
   Box,
   Avatar,
 } from "@mui/material";
-import { Menu as MenuIcon, Close as CloseIcon } from "@mui/icons-material";
+import {
+  Menu as MenuIcon,
+  Close as CloseIcon,
+  Gamepad,
+} from "@mui/icons-material";
 
 export default function Navbar() {
   const [user] = useAuthState(auth);
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const handleLogout = async () => {
     await auth.signOut();
@@ -39,17 +43,11 @@ export default function Navbar() {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleProfileClick = () => {
-    if (user) {
-      router.push(`/profile/`);
-    }
-  };
-
   const navItems = [
-    { title: "Home", path: "/" },
+    { title: "Home", path: user ? "/home" : "/" },
     { title: "All Games", path: "/games" },
     { title: "API", path: "/api/games", target: "_blank" },
-    { title: "DOCS", path: "/docs", target: "_blank" },
+    { title: "Docs", path: "/docs", target: "_blank" },
   ];
 
   const userOnlyItems = [{ title: "Add Game", path: "/add-game" }];
@@ -63,7 +61,12 @@ export default function Navbar() {
     >
       <List>
         {navItems.map((item) => (
-          <ListItem key={item.title} component={Link} href={item.path}>
+          <ListItem
+            key={item.title}
+            component={Link}
+            href={item.path}
+            target={item.target}
+          >
             <ListItemText primary={item.title} />
           </ListItem>
         ))}
@@ -78,23 +81,31 @@ export default function Navbar() {
   );
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: "background.paper" }}>
+    <AppBar
+      position="static"
+      sx={{ backgroundColor: "background.paper", boxShadow: "none" }}
+    >
       <Toolbar>
-        {isMobile && (
+        <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
+          <Gamepad sx={{ mr: 1, color: "#8f44fd" }} />
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{ fontWeight: "bold", color: "white" }}
+          >
+            GBXD API
+          </Typography>
+        </Box>
+        {isMobile ? (
           <IconButton
             color="inherit"
             aria-label="open drawer"
-            edge="start"
+            edge="end"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2 }}
           >
             <MenuIcon />
           </IconButton>
-        )}
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          GBXD API
-        </Typography>
-        {!isMobile && (
+        ) : (
           <Box sx={{ display: "flex", alignItems: "center" }}>
             {navItems.map((item) => (
               <Button
@@ -102,7 +113,7 @@ export default function Navbar() {
                 color="inherit"
                 component={Link}
                 href={item.path}
-                sx={{ mx: 1 }}
+                sx={{ mx: 1, color: "white" }}
                 target={item.target}
               >
                 {item.title}
@@ -115,53 +126,61 @@ export default function Navbar() {
                   color="inherit"
                   component={Link}
                   href={item.path}
-                  sx={{ mx: 1 }}
+                  sx={{ mx: 1, color: "white" }}
                 >
                   {item.title}
                 </Button>
               ))}
+            {user ? (
+              <Box sx={{ display: "flex", alignItems: "center", ml: 2 }}>
+                <Avatar
+                  src={user.photoURL || undefined}
+                  alt={user.displayName || "User avatar"}
+                  sx={{ width: 32, height: 32, mr: 1 }}
+                />
+                <Typography variant="body2" sx={{ mr: 2, color: "white" }}>
+                  {user.displayName || user.email}
+                </Typography>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleLogout}
+                  sx={{ borderColor: "#ff5555", color: "#ff5555" }}
+                >
+                  Logout
+                </Button>
+              </Box>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={signInWithGoogle}
+                sx={{
+                  backgroundColor: "#8f44fd",
+                  color: "white",
+                  "&:hover": { backgroundColor: "#7c3ce3" },
+                }}
+              >
+                Login with Google
+              </Button>
+            )}
           </Box>
-        )}
-        {user ? (
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Avatar
-              src={user.photoURL || undefined}
-              alt={user.displayName || "User avatar"}
-              sx={{ width: 32, height: 32, mr: 1 }}
-              onClick={handleProfileClick}
-              style={{ cursor: "pointer" }}
-            />
-            <Typography
-              variant="body2"
-              sx={{ mr: 2, cursor: "pointer" }}
-              onClick={handleProfileClick}
-            >
-              {user.displayName || user.email}
-            </Typography>
-            <Button color="secondary" onClick={handleLogout}>
-              Logout
-            </Button>
-          </Box>
-        ) : (
-          <Button color="secondary" onClick={signInWithGoogle}>
-            Login with Google
-          </Button>
         )}
       </Toolbar>
       <AnimatePresence>
         {isMobile && (
           <Drawer
             variant="temporary"
+            anchor="right"
             open={mobileOpen}
             onClose={handleDrawerToggle}
             ModalProps={{
-              keepMounted: true, // Better open performance on mobile.
+              keepMounted: true,
             }}
           >
             <motion.div
-              initial={{ x: "-100%" }}
+              initial={{ x: "100%" }}
               animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
+              exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               <Box sx={{ textAlign: "right", p: 1 }}>
@@ -170,6 +189,34 @@ export default function Navbar() {
                 </IconButton>
               </Box>
               {drawer}
+              {user && (
+                <Box
+                  sx={{
+                    p: 2,
+                    borderTop: "1px solid rgba(255, 255, 255, 0.12)",
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <Avatar
+                      src={user.photoURL || undefined}
+                      alt={user.displayName || "User avatar"}
+                      sx={{ width: 32, height: 32, mr: 1 }}
+                    />
+                    <Typography variant="body2" sx={{ color: "white" }}>
+                      {user.displayName || user.email}
+                    </Typography>
+                  </Box>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="secondary"
+                    onClick={handleLogout}
+                    sx={{ borderColor: "#ff5555", color: "#ff5555" }}
+                  >
+                    Logout
+                  </Button>
+                </Box>
+              )}
             </motion.div>
           </Drawer>
         )}

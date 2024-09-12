@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -28,12 +29,16 @@ import {
   ListItemText,
   Backdrop,
   Snackbar,
+  Alert,
 } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import SearchIcon from "@mui/icons-material/Search";
-import EditIcon from "@mui/icons-material/Edit";
+import {
+  Search as SearchIcon,
+  Edit as EditIcon,
+  Add as AddIcon,
+} from "@mui/icons-material";
 import Navbar from "../components/Navbar";
 import dayjs from "dayjs";
 import { genresList } from "../constants/genres";
@@ -42,17 +47,24 @@ import BasicInfoForm from "../components/BasicInfoForm";
 import GenrePlatformSelector from "../components/GenrePlatformSelector";
 import ReviewInfo from "../components/ReviewInfo";
 import StoreLinksForm from "../components/StoreLinksForm";
+import AliasesFranchisesForm from "../components/AliasesFranchisesForm/AliasesFranchisesForm";
 
-const darkTheme = createTheme({
+const theme = createTheme({
   palette: {
     mode: "dark",
     primary: {
-      main: "#90caf9",
+      main: "#8f44fd",
+    },
+    secondary: {
+      main: "#ff5555",
     },
     background: {
-      default: "#121212",
-      paper: "#1e1e1e",
+      default: "#151515",
+      paper: "#202020",
     },
+  },
+  typography: {
+    fontFamily: "'Poppins', sans-serif",
   },
 });
 
@@ -75,9 +87,9 @@ const AddGame = () => {
   const [genreSearch, setGenreSearch] = useState("");
   const [platformSearch, setPlatformSearch] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("info");
   const [isNSFW, setIsNSFW] = useState(false);
   const [storeLinks, setStoreLinks] = useState({
     steam: "",
@@ -86,6 +98,8 @@ const AddGame = () => {
     xbox: "",
     nintendoSwitch: "",
   });
+  const [aliases, setAliases] = useState([""]);
+  const [franchises, setFranchises] = useState([""]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -95,7 +109,7 @@ const AddGame = () => {
 
   if (loading) {
     return (
-      <ThemeProvider theme={darkTheme}>
+      <ThemeProvider theme={theme}>
         <CssBaseline />
         <Box
           sx={{
@@ -131,14 +145,14 @@ const AddGame = () => {
 
   const validateUrl = (url) => {
     const pattern = new RegExp(
-      "^(https?:\\/\\/)?" + // protocol
-        "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
-        "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
-        "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
-        "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
+      "^(https?:\\/\\/)?" +
+        "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" +
+        "((\\d{1,3}\\.){3}\\d{1,3}))" +
+        "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" +
+        "(\\?[;&a-z\\d%_.~+=-]*)?" +
         "(\\#[-a-z\\d_]*)?$",
       "i"
-    ); // fragment locator
+    );
     return !!pattern.test(url);
   };
 
@@ -165,17 +179,15 @@ const AddGame = () => {
     if (newErrors.length > 0) {
       setIsSubmitting(false);
       setSnackbarMessage("Please fill in all required fields correctly.");
+      setSnackbarSeverity("error");
       setSnackbarOpen(true);
       return;
     }
 
-    // Verificar si el juego ya existe
     try {
-      console.log("Checking game existence for:", name);
       const checkResponse = await fetch(
         `/api/check-game?name=${encodeURIComponent(name)}`
       );
-      console.log("Check response status:", checkResponse.status);
 
       if (!checkResponse.ok) {
         throw new Error(
@@ -184,13 +196,13 @@ const AddGame = () => {
       }
 
       const checkResult = await checkResponse.json();
-      console.log("Check result:", checkResult);
 
       if (checkResult.exists) {
         setIsSubmitting(false);
         setSnackbarMessage(
           "A game with this name already exists. Please use a different name."
         );
+        setSnackbarSeverity("warning");
         setSnackbarOpen(true);
         return;
       }
@@ -198,6 +210,7 @@ const AddGame = () => {
       console.error("Error checking game existence:", error);
       setIsSubmitting(false);
       setSnackbarMessage(`Error checking game existence: ${error.message}`);
+      setSnackbarSeverity("error");
       setSnackbarOpen(true);
       return;
     }
@@ -214,6 +227,8 @@ const AddGame = () => {
       userId: user.uid,
       isNSFW,
       storeLinks,
+      aliases: aliases.filter((alias) => alias.trim() !== ""),
+      franchises: franchises.filter((franchise) => franchise.trim() !== ""),
     };
 
     try {
@@ -227,16 +242,19 @@ const AddGame = () => {
 
       if (res.ok) {
         setSnackbarMessage("Game added successfully!");
+        setSnackbarSeverity("success");
         setSnackbarOpen(true);
         router.push("/games");
       } else {
         const result = await res.json();
         setSnackbarMessage(result.error || "Error adding game");
+        setSnackbarSeverity("error");
         setSnackbarOpen(true);
       }
     } catch (error) {
       console.error("Error:", error);
       setSnackbarMessage("Error adding game");
+      setSnackbarSeverity("error");
       setSnackbarOpen(true);
     } finally {
       setIsSubmitting(false);
@@ -266,6 +284,7 @@ const AddGame = () => {
       setSnackbarMessage(
         "Please fill in all required fields before proceeding."
       );
+      setSnackbarSeverity("warning");
       setSnackbarOpen(true);
     }
   };
@@ -335,16 +354,24 @@ const AddGame = () => {
         );
       case 1:
         return (
-          <TextField
-            fullWidth
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            margin="normal"
-            multiline
-            rows={4}
-            required
-          />
+          <>
+            <TextField
+              fullWidth
+              label="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              margin="normal"
+              multiline
+              rows={4}
+              required
+            />
+            <AliasesFranchisesForm
+              aliases={aliases}
+              setAliases={setAliases}
+              franchises={franchises}
+              setFranchises={setFranchises}
+            />
+          </>
         );
       case 2:
         return (
@@ -393,50 +420,71 @@ const AddGame = () => {
   };
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <Navbar />
-      <Container maxWidth="md" sx={{ mt: 4 }}>
-        <Paper
-          elevation={3}
-          sx={{
-            p: 4,
-            background: "linear-gradient(145deg, #1e1e1e 0%, #2a2a2a 100%)",
-          }}
+      <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          <Typography variant="h4" gutterBottom>
-            Add a New Game
-          </Typography>
+          <Paper
+            elevation={3}
+            sx={{
+              p: 4,
+              background: "linear-gradient(145deg, #202020 0%, #2a2a2a 100%)",
+              borderRadius: "12px",
+            }}
+          >
+            <Typography
+              variant="h4"
+              gutterBottom
+              sx={{ color: "primary.main", fontWeight: "bold" }}
+            >
+              Add a New Game
+            </Typography>
 
-          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+            <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+              {steps.map((label) => (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
 
-          <form>
-            {getStepContent(activeStep)}
-
-            <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
-              {activeStep > 0 && activeStep < steps.length - 1 && (
-                <Button onClick={handleBack} sx={{ mr: 1 }}>
-                  Back
-                </Button>
-              )}
-              {activeStep < steps.length - 1 && (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleNext}
+            <form onSubmit={handleSubmit}>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeStep}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  Next
-                </Button>
-              )}
-            </Box>
-          </form>
-        </Paper>
+                  {getStepContent(activeStep)}
+                </motion.div>
+              </AnimatePresence>
+
+              <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
+                {activeStep > 0 && activeStep < steps.length - 1 && (
+                  <Button onClick={handleBack} sx={{ mr: 1 }}>
+                    Back
+                  </Button>
+                )}
+                {activeStep < steps.length - 1 && (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleNext}
+                  >
+                    Next
+                  </Button>
+                )}
+              </Box>
+            </form>
+          </Paper>
+        </motion.div>
       </Container>
 
       <Modal open={showGenresModal} onClose={() => setShowGenresModal(false)}>
@@ -453,9 +501,15 @@ const AddGame = () => {
             maxHeight: "80vh",
             display: "flex",
             flexDirection: "column",
+            borderRadius: "12px",
           }}
         >
-          <Typography variant="h6" component="h2" gutterBottom>
+          <Typography
+            variant="h6"
+            component="h2"
+            gutterBottom
+            sx={{ color: "primary.main" }}
+          >
             Select genres
           </Typography>
           <TextField
@@ -480,6 +534,7 @@ const AddGame = () => {
                     <Checkbox
                       checked={genres.includes(genre)}
                       onChange={() => handleGenreSelection(genre)}
+                      color="primary"
                     />
                   }
                   label={genre}
@@ -487,7 +542,12 @@ const AddGame = () => {
               </ListItem>
             ))}
           </List>
-          <Button onClick={() => setShowGenresModal(false)} sx={{ mt: 2 }}>
+          <Button
+            onClick={() => setShowGenresModal(false)}
+            sx={{ mt: 2 }}
+            color="primary"
+            variant="contained"
+          >
             Done
           </Button>
         </Box>
@@ -510,9 +570,15 @@ const AddGame = () => {
             maxHeight: "80vh",
             display: "flex",
             flexDirection: "column",
+            borderRadius: "12px",
           }}
         >
-          <Typography variant="h6" component="h2" gutterBottom>
+          <Typography
+            variant="h6"
+            component="h2"
+            gutterBottom
+            sx={{ color: "primary.main" }}
+          >
             Select platforms
           </Typography>
           <TextField
@@ -537,6 +603,7 @@ const AddGame = () => {
                     <Checkbox
                       checked={platforms.includes(platform)}
                       onChange={() => handlePlatformSelection(platform)}
+                      color="primary"
                     />
                   }
                   label={platform}
@@ -544,7 +611,12 @@ const AddGame = () => {
               </ListItem>
             ))}
           </List>
-          <Button onClick={() => setShowPlatformsModal(false)} sx={{ mt: 2 }}>
+          <Button
+            onClick={() => setShowPlatformsModal(false)}
+            sx={{ mt: 2 }}
+            color="primary"
+            variant="contained"
+          >
             Done
           </Button>
         </Box>
@@ -561,8 +633,15 @@ const AddGame = () => {
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={() => setSnackbarOpen(false)}
-        message={snackbarMessage}
-      />
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </ThemeProvider>
   );
 };
