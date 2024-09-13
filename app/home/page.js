@@ -41,20 +41,25 @@ const theme = createTheme({
 });
 
 const FeatureCard = ({ icon, title, description, link }) => (
-  <Card className="h-full flex flex-col">
-    <CardContent className="flex-grow">
-      <Box className="flex items-center mb-4">
+  <Card className="!h-full !flex !flex-col !bg-[#202020] !rounded-lg !shadow-lg">
+    <CardContent className="!flex-grow">
+      <Box className="!flex !items-center !mb-4">
         {icon}
-        <Typography variant="h6" className="ml-2">
+        <Typography variant="h6" className="!ml-2 !text-white">
           {title}
         </Typography>
       </Box>
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="body2" className="!text-gray-300">
         {description}
       </Typography>
     </CardContent>
     <CardActions>
-      <Button size="small" component={Link} href={link}>
+      <Button 
+        size="small" 
+        component={Link} 
+        href={link}
+        className="!text-[#8f44fd] hover:!text-[#7c3ce3] !font-bold"
+      >
         Explore
       </Button>
     </CardActions>
@@ -74,48 +79,40 @@ export default function Home() {
     <ThemeProvider theme={theme}>
       <Navbar />
       <CssBaseline />
-      <div className="min-h-screen bg-[#151515]">
+      <div className="!min-h-screen !bg-[#151515]">
         <Container maxWidth="lg">
-          <Box className="py-16 md:py-24">
+          <Box className="!py-16 md:!py-24">
             <Typography
               variant="h2"
               component="h1"
-              className="font-bold mb-4 text-white"
+              className="!font-bold !mb-4 !text-white"
             >
               Welcome back, {user.displayName}!
             </Typography>
-            <Typography variant="h5" className="mb-6 text-gray-300">
+            <Typography variant="h5" className="!mb-6 !text-gray-300">
               Explore and manage your game collection with Gameboxd
             </Typography>
           </Box>
 
           <Box>
-            <Typography variant="h3" className="text-center mb-24 text-white">
+            <Typography variant="h3" className="!text-center !mb-24 !text-white">
               What would you like to do?
             </Typography>
             <Grid container spacing={4} justifyContent="center">
               <Grid item xs={12} sm={6} md={3}>
-                <Box className="h-full">
+                <Box className="!h-full">
                   <FeatureCard
-                    icon={<Search className="text-[#8f44fd]" />}
+                    icon={<Search className="!text-[#8f44fd]" />}
                     title="Search Games"
                     description="Find new games to add to your collection."
                     link="/games"
                   />
                 </Box>
               </Grid>
-              {/* <Grid item xs={12} sm={6} md={3}>
-                <FeatureCard
-                  icon={<Games className="text-[#ff5555]" />}
-                  title="My Collection"
-                  description="View and manage your game collection."
-                  link="/collection"
-                />
-              </Grid> */}
               <Grid item xs={12} sm={6} md={3}>
-                <Box className="h-full">
+                <Box className="!h-full">
                   <FeatureCard
-                    icon={<Add className="text-[#50fa7b]" />}
+                    icon={<Add className="!text-[#50fa7b]" />}
                     title="Add Game"
                     description="Add a new game to the database."
                     link="/add-game"
@@ -123,9 +120,9 @@ export default function Home() {
                 </Box>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <Box className="h-full">
+                <Box className="!h-full">
                   <FeatureCard
-                    icon={<Code className="text-[#bd93f9]" />}
+                    icon={<Code className="!text-[#bd93f9]" />}
                     title="API"
                     description="Use our API to access game data."
                     link="/api"
