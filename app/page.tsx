@@ -171,7 +171,7 @@ export default function Home() {
               onClick={signInWithGoogle}
               variant="contained"
               size="large"
-              className="bg-[#ff5555] hover:bg-[#ff3333] text-white font-bold py-3 px-6 rounded-full"
+              className="!bg-[#ff5555] hover:!bg-[#ff3333] !text-white !font-bold !py-3 !px-6 !rounded-full"
             >
               Sign Up for API Access
             </Button>

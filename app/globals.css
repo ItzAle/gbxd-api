@@ -37,4 +37,7 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  .font-bold {
+    font-weight: 700 !important;
+  }
 }
