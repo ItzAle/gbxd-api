@@ -51,26 +51,26 @@ export default function Home() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <div className="min-h-screen bg-[#151515] flex items-center justify-center">
+      <div className="!min-h-screen !bg-[#151515] !flex !items-center !justify-center">
         <Container maxWidth="sm">
           <motion.div
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="text-center"
+            className="!text-center"
           >
             <Typography
               variant="h2"
               component="h1"
-              className="font-bold mb-8 text-white"
+              className="!font-bold !mb-8 !text-white"
             >
               Welcome to Gameboxd
             </Typography>
-            <Typography variant="h5" className="mb-8 text-gray-300">
+            <Typography variant="h5" className="!mb-8 !text-gray-300">
               Sign in to access our game API
             </Typography>
             {error && (
-              <Typography color="error" className="mb-4">
+              <Typography color="error" className="!mb-4">
                 {error}
               </Typography>
             )}
@@ -79,7 +79,7 @@ export default function Home() {
               variant="contained"
               size="large"
               startIcon={<Google />}
-              className="bg-[#8f44fd] hover:bg-[#7c3ce3] text-white font-bold py-3 px-6 rounded-full"
+              className="!bg-[#8f44fd] hover:!bg-[#7c3ce3] !text-white !font-bold !py-3 !px-6 !rounded-full"
             >
               Sign in with Google
             </Button>
