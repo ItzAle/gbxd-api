@@ -40,12 +40,9 @@ export async function GET(request) {
 
     return NextResponse.json(latestGames, { status: 200, headers });
   } catch (error) {
-    console.error("Error fetching latest games:", error);
     return NextResponse.json(
       {
         error: "Internal Server Error",
-        details: error.message,
-        stack: error.stack,
       },
       { status: 500, headers }
     );

@@ -1,9 +1,36 @@
 import { docClient } from "../../../lib/aws-config";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
-import slugify from 'slugify';
+import slugify from "slugify";
+import { NextResponse } from "next/server";
+import { LRUCache } from 'lru-cache';
+
+// Configuración del rate limiting
+const rateLimit = new LRUCache({
+  max: 500,
+  ttl: 60 * 1000, // 1 minuto
+});
+
+const RATE_LIMIT = 5; // Número máximo de solicitudes por minuto
+
+function rateLimiter(ip) {
+  const tokenCount = rateLimit.get(ip) || 0;
+  if (tokenCount > RATE_LIMIT) {
+    return false;
+  }
+  rateLimit.set(ip, tokenCount + 1);
+  return true;
+}
 
 // Handler para el POST request para añadir un juego
 export async function POST(req) {
+  // Obtener la IP del cliente
+  const ip = req.headers.get("x-forwarded-for") || req.ip;
+
+  // Verificar el rate limit
+  if (!rateLimiter(ip)) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+  }
+
   try {
     // Parsear el cuerpo de la solicitud
     const {
@@ -15,7 +42,7 @@ export async function POST(req) {
       platforms,
       genres,
       coverImageUrl,
-      userId, 
+      userId,
       isNSFW,
       storeLinks,
       aliases,
@@ -33,10 +60,7 @@ export async function POST(req) {
       !genres ||
       !coverImageUrl
     ) {
-      return new Response(
-        JSON.stringify({ error: "All fields are required" }),
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "All fields are required" }, { status: 400 });
     }
 
     // Generar un slug para el juego
@@ -55,7 +79,7 @@ export async function POST(req) {
         platforms,
         genres,
         coverImageUrl,
-        addedBy: userId, // Añade esto
+        addedBy: userId,
         isNSFW,
         storeLinks,
         aliases,
@@ -66,15 +90,9 @@ export async function POST(req) {
     await docClient.send(command);
 
     // Responder con un mensaje de éxito
-    return new Response(
-      JSON.stringify({ message: "Game added successfully" }),
-      { status: 200 }
-    );
+    return NextResponse.json({ message: "Game added successfully" }, { status: 200 });
   } catch (error) {
-    // Registrar el error en la consola y responder con un error genérico
-    console.error("Error:", error);
-    return new Response(JSON.stringify({ error: "Error adding game" }), {
-      status: 500,
-    });
+    console.error("Error adding game:", error);
+    return NextResponse.json({ error: "Error adding game" }, { status: 500 });
   }
 }

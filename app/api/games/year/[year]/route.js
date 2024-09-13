@@ -39,14 +39,16 @@ export async function GET(request, { params }) {
     const games = response.Items;
 
     if (games.length === 0) {
-      return NextResponse.json({ message: "No games found for this year" }, { status: 404, headers });
+      return NextResponse.json(
+        { message: "No games found for this year" },
+        { status: 404, headers }
+      );
     }
 
     return NextResponse.json(games, { status: 200, headers });
   } catch (error) {
-    console.error("Error fetching games by year:", error);
     return NextResponse.json(
-      { error: "Internal Server Error", details: error.message, stack: error.stack },
+      { error: "Internal Server Error" },
       { status: 500, headers }
     );
   }

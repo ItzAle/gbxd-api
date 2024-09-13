@@ -31,7 +31,6 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(games, { status: 200, headers });
   } catch (error) {
-    console.error("Error fetching games by developer:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500, headers }

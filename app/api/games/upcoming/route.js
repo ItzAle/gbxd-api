@@ -55,12 +55,9 @@ export async function GET(request) {
 
     return NextResponse.json(upcomingGames, { status: 200, headers });
   } catch (error) {
-    console.error("Error fetching upcoming games:", error);
     return NextResponse.json(
       {
         error: "Internal Server Error",
-        details: error.message,
-        stack: error.stack,
       },
       { status: 500, headers }
     );

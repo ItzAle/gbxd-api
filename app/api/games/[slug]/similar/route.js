@@ -27,7 +27,10 @@ export async function GET(request, { params }) {
     const { Item: game } = await docClient.send(getCommand);
 
     if (!game) {
-      return NextResponse.json({ message: "Game not found" }, { status: 404, headers });
+      return NextResponse.json(
+        { message: "Game not found" },
+        { status: 404, headers }
+      );
     }
 
     console.log("Original game:", JSON.stringify(game, null, 2));
@@ -35,7 +38,8 @@ export async function GET(request, { params }) {
     // Ahora buscamos juegos similares
     const scanCommand = new ScanCommand({
       TableName: "games",
-      FilterExpression: "(contains(genres, :genre1) OR contains(genres, :genre2)) AND slug <> :slug",
+      FilterExpression:
+        "(contains(genres, :genre1) OR contains(genres, :genre2)) AND slug <> :slug",
       ExpressionAttributeValues: {
         ":genre1": game.genres[0],
         ":genre2": game.genres.length > 1 ? game.genres[1] : game.genres[0],
@@ -62,14 +66,22 @@ export async function GET(request, { params }) {
         Limit: 10,
       });
 
-      console.log("Fallback scan command:", JSON.stringify(fallbackScanCommand, null, 2));
+      console.log(
+        "Fallback scan command:",
+        JSON.stringify(fallbackScanCommand, null, 2)
+      );
 
-      const { Items: fallbackSimilarGames } = await docClient.send(fallbackScanCommand);
+      const { Items: fallbackSimilarGames } = await docClient.send(
+        fallbackScanCommand
+      );
 
       console.log("Fallback similar games found:", fallbackSimilarGames.length);
 
       if (fallbackSimilarGames.length === 0) {
-        return NextResponse.json({ message: "No similar games found" }, { status: 404, headers });
+        return NextResponse.json(
+          { message: "No similar games found" },
+          { status: 404, headers }
+        );
       }
 
       return NextResponse.json(fallbackSimilarGames, { status: 200, headers });
@@ -77,9 +89,8 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(similarGames, { status: 200, headers });
   } catch (error) {
-    console.error("Error fetching similar games:", error);
     return NextResponse.json(
-      { error: "Internal Server Error", details: error.message, stack: error.stack },
+      { error: "Internal Server Error" },
       { status: 500, headers }
     );
   }
