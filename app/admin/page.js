@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
 import {
   TextField,
   Button,
@@ -19,26 +22,31 @@ export default function AddRawgGame() {
   const [message, setMessage] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, loading] = useAuthState(auth);
+  const [showPinDialog, setShowPinDialog] = useState(false);
   const [pin, setPin] = useState("");
-  const [showPinDialog, setShowPinDialog] = useState(true);
+  const router = useRouter();
+
+  if (!user) {
+    router.push("/");
+  }
 
   useEffect(() => {
-    // Verificar si ya está autenticado (por ejemplo, usando localStorage)
-    const auth = localStorage.getItem("adminAuth");
-    if (auth === "true") {
-      setIsAuthenticated(true);
-      setShowPinDialog(false);
+    if (!loading) {
+      if (!user) {
+        router.push("/login");
+      } else if (user.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
+        setShowPinDialog(true);
+      }
     }
-  }, []);
+  }, [user, loading, router]);
 
   const handlePinSubmit = () => {
     if (pin === process.env.NEXT_PUBLIC_ADMIN_PIN) {
-      setIsAuthenticated(true);
       setShowPinDialog(false);
-      localStorage.setItem("adminAuth", "true");
     } else {
       alert("PIN incorrecto");
+      router.push("/");
     }
   };
 
@@ -161,7 +169,18 @@ export default function AddRawgGame() {
     }
   };
 
-  if (!isAuthenticated) {
+  if (loading) {
+    return <CircularProgress />;
+  }
+
+  if (
+    !user ||
+    (user.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL && !showPinDialog)
+  ) {
+    return null;
+  }
+
+  if (showPinDialog) {
     return (
       <Dialog open={showPinDialog} onClose={() => {}}>
         <DialogTitle>Ingrese el PIN de administrador</DialogTitle>

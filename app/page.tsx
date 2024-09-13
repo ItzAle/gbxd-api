@@ -18,6 +18,7 @@ import Link from "next/link";
 import { auth, signInWithGoogle } from "../lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useRouter } from "next/navigation";
+import Navbar from "./components/Navbar";
 
 const theme = createTheme({
   palette: {
@@ -74,6 +75,7 @@ export default function Home() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <Navbar />
       <div className="min-h-screen bg-[#151515]">
         <Container maxWidth="lg">
           <Box className="py-16 md:py-24">
@@ -132,22 +134,26 @@ export default function Home() {
                 {
                   icon: <Search className="text-[#8f44fd]" />,
                   title: "Powerful Search",
-                  description: "Find games quickly with our advanced search capabilities.",
+                  description:
+                    "Find games quickly with our advanced search capabilities.",
                 },
                 {
                   icon: <Games className="text-[#ff5555]" />,
                   title: "Extensive Database",
-                  description: "Access a vast collection of games, platforms, and genres.",
+                  description:
+                    "Access a vast collection of games, platforms, and genres.",
                 },
                 {
                   icon: <Code className="text-[#50fa7b]" />,
                   title: "Easy Integration",
-                  description: "Simple API calls to integrate game data into your applications.",
+                  description:
+                    "Simple API calls to integrate game data into your applications.",
                 },
                 {
                   icon: <Gamepad className="text-[#bd93f9]" />,
                   title: "Real-time Updates",
-                  description: "Stay up-to-date with the latest game releases and updates.",
+                  description:
+                    "Stay up-to-date with the latest game releases and updates.",
                 },
               ].map((feature, index) => (
                 <Grid item xs={12} sm={6} md={3} key={index} className="flex">

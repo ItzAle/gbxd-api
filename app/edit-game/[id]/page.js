@@ -31,7 +31,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
-import Image from 'next/image';
+import Image from "next/image";
 import AliasesFranchisesForm from "@/app/components/AliasesFranchisesForm/AliasesFranchisesForm";
 
 const EditGame = () => {
@@ -86,8 +86,10 @@ const EditGame = () => {
           ...game,
           releaseDate: game.releaseDate.format("YYYY-MM-DD"),
           storeLinks: game.storeLinks,
-          aliases: game.aliases.filter(alias => alias.trim() !== ""),
-          franchises: game.franchises.filter(franchise => franchise.trim() !== ""),
+          aliases: game.aliases.filter((alias) => alias.trim() !== ""),
+          franchises: game.franchises.filter(
+            (franchise) => franchise.trim() !== ""
+          ),
         }),
       });
 
@@ -240,9 +242,13 @@ const EditGame = () => {
             />
             <AliasesFranchisesForm
               aliases={game.aliases}
-              setAliases={(newAliases) => setGame({ ...game, aliases: newAliases })}
+              setAliases={(newAliases) =>
+                setGame({ ...game, aliases: newAliases })
+              }
               franchises={game.franchises}
-              setFranchises={(newFranchises) => setGame({ ...game, franchises: newFranchises })}
+              setFranchises={(newFranchises) =>
+                setGame({ ...game, franchises: newFranchises })
+              }
             />
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1">Géneros</Typography>
@@ -278,13 +284,13 @@ const EditGame = () => {
               fullWidth
               label="Cover image URL"
               name="coverImageUrl"
-              value={game?.coverImageUrl || ''}
+              value={game?.coverImageUrl || ""}
               onChange={handleImageChange}
               margin="normal"
               required
             />
             {imagePreview && (
-              <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+              <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
                 <Image
                   src={imagePreview}
                   alt="Vista previa de la portada"
