@@ -1,5 +1,5 @@
 import { docClient } from "../../../../lib/aws-config";
-import { QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { QueryCommand, UpdateCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { NextResponse } from "next/server";
 
 export async function GET(request, { params }) {
