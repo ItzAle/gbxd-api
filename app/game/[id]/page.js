@@ -70,6 +70,25 @@ const GameDetail = () => {
     router.push(`/edit-game/${id}`);
   };
 
+  const handleDelete = async () => {
+    if (window.confirm('¿Estás seguro de que quieres borrar este juego? Esta acción no se puede deshacer.')) {
+      try {
+        const response = await fetch(`/api/game/${id}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          router.push('/games');
+        } else {
+          throw new Error('Error al borrar el juego');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        setError('Error al borrar el juego');
+      }
+    }
+  };
+
   useEffect(() => {
     const fetchGame = async () => {
       try {
@@ -150,14 +169,22 @@ const GameDetail = () => {
               {game.name}
             </Typography>
             {isAdmin && (
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={handleEdit}
-                sx={{ mb: 2 }}
-              >
-                Edit Game
-              </Button>
+              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={handleEdit}
+                >
+                  Editar juego
+                </Button>
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={handleDelete}
+                >
+                  Borrar juego
+                </Button>
+              </Box>
             )}
             <Grid container spacing={4}>
               <Grid item xs={12} md={6}>
