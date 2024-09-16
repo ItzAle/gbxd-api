@@ -1,6 +1,7 @@
 import { docClient } from "../../../../lib/aws-config";
 import { QueryCommand, UpdateCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { NextResponse } from "next/server";
+import { revalidatePath } from 'next/cache';
 
 export async function GET(request, { params }) {
   const headers = {
@@ -129,6 +130,19 @@ export async function DELETE(request, { params }) {
     console.log('Delete command:', JSON.stringify(deleteCommand));
     const result = await docClient.send(deleteCommand);
     console.log('Delete result:', JSON.stringify(result));
+
+    // Revalidar las rutas relevantes
+    revalidatePath('/games');
+    revalidatePath(`/game/${name}`);
+
+    // Trigger Vercel redeploy (si es necesario)
+    if (process.env.VERCEL_DEPLOY_HOOK_URL) {
+      console.log('Triggering Vercel redeploy');
+      await fetch(process.env.VERCEL_DEPLOY_HOOK_URL, {
+        method: 'POST',
+      });
+      console.log('Vercel redeploy triggered');
+    }
 
     return NextResponse.json(
       {
