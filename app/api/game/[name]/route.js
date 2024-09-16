@@ -120,12 +120,15 @@ export async function DELETE(request, { params }) {
   const { name } = params;
 
   try {
+    console.log('Attempting to delete game with slug:', name);
     const deleteCommand = new DeleteCommand({
       TableName: "games",
       Key: { slug: name },
     });
 
-    await docClient.send(deleteCommand);
+    console.log('Delete command:', JSON.stringify(deleteCommand));
+    const result = await docClient.send(deleteCommand);
+    console.log('Delete result:', JSON.stringify(result));
 
     return NextResponse.json(
       {
@@ -134,8 +137,10 @@ export async function DELETE(request, { params }) {
       { status: 200, headers }
     );
   } catch (error) {
+    console.error("Error deleting game:", error);
+    console.error("Error stack:", error.stack);
     return NextResponse.json(
-      { error: "Internal Server Error: " },
+      { error: `Error deleting game: ${error.message}` },
       { status: 500, headers }
     );
   }

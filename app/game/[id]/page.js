@@ -71,21 +71,22 @@ const GameDetail = () => {
   };
 
   const handleDelete = async () => {
-    if (window.confirm('¿Estás seguro de que quieres borrar este juego? Esta acción no se puede deshacer.')) {
-      try {
-        const response = await fetch(`/api/game/${id}`, {
-          method: 'DELETE',
-        });
+    try {
+      const response = await fetch(`/api/game/${id}`, {
+        method: 'DELETE',
+      });
 
-        if (response.ok) {
-          router.push('/games');
-        } else {
-          throw new Error('Error al borrar el juego');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        setError('Error al borrar el juego');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al borrar el juego');
       }
+
+      // Si la eliminación fue exitosa, redirige al usuario
+      router.push('/games');
+    } catch (error) {
+      console.error('Error al borrar el juego:', error);
+      // Muestra un mensaje de error al usuario
+      setError(error.message);
     }
   };
 
