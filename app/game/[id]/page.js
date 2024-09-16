@@ -23,6 +23,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  CircularProgress,
 } from "@mui/material";
 import {
   CalendarToday,
@@ -69,6 +70,8 @@ const GameDetail = () => {
   const [user] = useAuthState(auth);
   const router = useRouter();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteStatus, setDeleteStatus] = useState('');
 
   const isAdmin = user && user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
@@ -85,7 +88,10 @@ const GameDetail = () => {
   };
 
   const handleDelete = async () => {
+    setIsDeleting(true);
+    setDeleteStatus('Borrando juego...');
     try {
+      setError(null);
       const response = await fetch(`/api/game/${id}`, {
         method: 'DELETE',
       });
@@ -95,19 +101,31 @@ const GameDetail = () => {
         throw new Error(errorData.error || 'Error al borrar el juego');
       }
 
-      // Si la eliminación fue exitosa, activar el redeploy
+      setDeleteStatus('Juego borrado. Iniciando redeploy...');
       if (process.env.NEXT_PUBLIC_VERCEL_DEPLOY_HOOK_URL) {
-        await fetch(process.env.NEXT_PUBLIC_VERCEL_DEPLOY_HOOK_URL, {
+        const redeployResponse = await fetch(process.env.NEXT_PUBLIC_VERCEL_DEPLOY_HOOK_URL, {
           method: "POST",
         });
+
+        if (!redeployResponse.ok) {
+          console.error('Error al activar el redeploy');
+        } else {
+          console.log('Redeploy activado con éxito');
+        }
+      } else {
+        console.warn('URL del hook de deploy no configurada');
       }
 
-      // Redirigir al usuario
-      router.push('/games');
+      setDeleteStatus('Redeploy iniciado. Redirigiendo...');
+      setTimeout(() => {
+        router.push('/games');
+      }, 2000);
     } catch (error) {
       console.error('Error al borrar el juego:', error);
       setError(error.message);
+      setDeleteStatus('Error al borrar el juego');
     } finally {
+      setIsDeleting(false);
       handleCloseDeleteDialog();
     }
   };
@@ -403,12 +421,18 @@ const GameDetail = () => {
             <DialogContentText id="alert-dialog-description">
               Esta acción no se puede deshacer. El juego será eliminado permanentemente y se activará un redeploy de la aplicación.
             </DialogContentText>
+            {isDeleting && (
+              <Box sx={{ mt: 2 }}>
+                <CircularProgress size={24} sx={{ mr: 2 }} />
+                <Typography variant="body2">{deleteStatus}</Typography>
+              </Box>
+            )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDeleteDialog} color="primary">
+            <Button onClick={handleCloseDeleteDialog} color="primary" disabled={isDeleting}>
               Cancelar
             </Button>
-            <Button onClick={handleDelete} color="error" autoFocus>
+            <Button onClick={handleDelete} color="error" autoFocus disabled={isDeleting}>
               Sí, borrar juego
             </Button>
           </DialogActions>
