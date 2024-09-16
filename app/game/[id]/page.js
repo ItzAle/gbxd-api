@@ -18,6 +18,11 @@ import {
   List,
   ListItem,
   ListItemText,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import {
   CalendarToday,
@@ -63,11 +68,20 @@ const GameDetail = () => {
   const [platforms, setPlatforms] = useState([]);
   const [user] = useAuthState(auth);
   const router = useRouter();
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   const isAdmin = user && user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
   const handleEdit = () => {
     router.push(`/edit-game/${id}`);
+  };
+
+  const handleOpenDeleteDialog = () => {
+    setOpenDeleteDialog(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false);
   };
 
   const handleDelete = async () => {
@@ -93,6 +107,8 @@ const GameDetail = () => {
     } catch (error) {
       console.error('Error al borrar el juego:', error);
       setError(error.message);
+    } finally {
+      handleCloseDeleteDialog();
     }
   };
 
@@ -187,7 +203,7 @@ const GameDetail = () => {
                 <Button
                   variant="contained"
                   color="error"
-                  onClick={handleDelete}
+                  onClick={handleOpenDeleteDialog}
                 >
                   Borrar juego
                 </Button>
@@ -373,6 +389,30 @@ const GameDetail = () => {
             )}
           </Paper>
         </motion.div>
+
+        <Dialog
+          open={openDeleteDialog}
+          onClose={handleCloseDeleteDialog}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">
+            {"¿Estás seguro de que quieres borrar este juego?"}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Esta acción no se puede deshacer. El juego será eliminado permanentemente y se activará un redeploy de la aplicación.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDeleteDialog} color="primary">
+              Cancelar
+            </Button>
+            <Button onClick={handleDelete} color="error" autoFocus>
+              Sí, borrar juego
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </ThemeProvider>
   );
