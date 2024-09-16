@@ -191,6 +191,14 @@ const AddGame = () => {
         setSnackbarMessage("Game added successfully!");
         setSnackbarSeverity("success");
         setSnackbarOpen(true);
+
+        // Trigger Vercel redeploy
+        if (process.env.VERCEL_DEPLOY_HOOK_URL) {
+          await fetch(process.env.VERCEL_DEPLOY_HOOK_URL, {
+            method: 'POST',
+          });
+        }
+
         router.push("/games");
       } else {
         const result = await res.json();

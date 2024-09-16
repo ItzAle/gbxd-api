@@ -1,9 +1,5 @@
 import { docClient } from "../../../../lib/aws-config";
-import {
-  QueryCommand,
-  UpdateCommand,
-  DeleteCommand,
-} from "@aws-sdk/lib-dynamodb";
+import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { NextResponse } from "next/server";
 
 export async function GET(request, { params }) {
@@ -43,6 +39,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(gameData, { status: 200, headers });
   } catch (error) {
+    console.error("Error fetching game:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500, headers }
