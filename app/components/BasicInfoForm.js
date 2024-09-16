@@ -2,7 +2,19 @@ import { TextField, Box } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
-const BasicInfoForm = ({ name, setName, publisher, setPublisher, developer, setDeveloper, releaseDate, setReleaseDate, coverImageUrl, setCoverImageUrl, validateUrl }) => {
+const BasicInfoForm = ({ formData, setFormData, validateUrl }) => {
+  const {
+    name,
+    publisher,
+    developer,
+    releaseDate,
+    coverImageUrl,
+  } = formData;
+
+  const handleChange = (field) => (event) => {
+    setFormData({ ...formData, [field]: event.target.value });
+  };
+
   return (
     <>
       <Box sx={{ mb: 2, display: "flex", justifyContent: "center" }}>
@@ -37,20 +49,21 @@ const BasicInfoForm = ({ name, setName, publisher, setPublisher, developer, setD
         fullWidth
         label="Cover image URL"
         value={coverImageUrl}
-        onChange={(e) => setCoverImageUrl(e.target.value)}
+        onChange={handleChange('coverImageUrl')}
         margin="normal"
         error={coverImageUrl !== "" && !validateUrl(coverImageUrl)}
         helperText={
           coverImageUrl !== "" && !validateUrl(coverImageUrl)
-            ? "Invalid URL"
+            ? "Please enter a valid URL"
             : ""
         }
+        required
       />
       <TextField
         fullWidth
         label="Name"
         value={name}
-        onChange={(e) => setName(e.target.value)}
+        onChange={handleChange('name')}
         margin="normal"
         required
       />
@@ -58,7 +71,7 @@ const BasicInfoForm = ({ name, setName, publisher, setPublisher, developer, setD
         fullWidth
         label="Publisher"
         value={publisher}
-        onChange={(e) => setPublisher(e.target.value)}
+        onChange={handleChange('publisher')}
         margin="normal"
         required
       />
@@ -66,7 +79,7 @@ const BasicInfoForm = ({ name, setName, publisher, setPublisher, developer, setD
         fullWidth
         label="Developer"
         value={developer}
-        onChange={(e) => setDeveloper(e.target.value)}
+        onChange={handleChange('developer')}
         margin="normal"
         required
       />
@@ -74,11 +87,10 @@ const BasicInfoForm = ({ name, setName, publisher, setPublisher, developer, setD
         <DatePicker
           label="Release date"
           value={releaseDate}
-          onChange={(newValue) => setReleaseDate(newValue)}
+          onChange={(newValue) => setFormData({ ...formData, releaseDate: newValue })}
           renderInput={(params) => (
             <TextField {...params} fullWidth margin="normal" required />
           )}
-          format="DD-MM-YYYY"
         />
       </LocalizationProvider>
     </>

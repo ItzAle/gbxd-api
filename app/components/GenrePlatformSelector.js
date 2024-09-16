@@ -1,6 +1,26 @@
 import { Button, Chip, Box } from "@mui/material";
 
-const GenrePlatformSelector = ({ genres, platforms, setShowGenresModal, setShowPlatformsModal, handleGenreSelection, handlePlatformSelection }) => {
+const GenrePlatformSelector = ({ formData, setFormData, setShowGenresModal, setShowPlatformsModal }) => {
+  const { genres = [], platforms = [] } = formData;
+
+  const handleGenreSelection = (genre) => {
+    setFormData(prevData => ({
+      ...prevData,
+      genres: prevData.genres.includes(genre)
+        ? prevData.genres.filter(g => g !== genre)
+        : [...prevData.genres, genre]
+    }));
+  };
+
+  const handlePlatformSelection = (platform) => {
+    setFormData(prevData => ({
+      ...prevData,
+      platforms: prevData.platforms.includes(platform)
+        ? prevData.platforms.filter(p => p !== platform)
+        : [...prevData.platforms, platform]
+    }));
+  };
+
   return (
     <>
       <Button variant="contained" onClick={() => setShowGenresModal(true)}>
