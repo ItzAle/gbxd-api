@@ -175,7 +175,9 @@ const AddGame = () => {
       ...formData,
       userId: user.uid,
       aliases: formData.aliases.filter((alias) => alias.trim() !== ""),
-      franchises: formData.franchises.filter((franchise) => franchise.trim() !== ""),
+      franchises: formData.franchises.filter(
+        (franchise) => franchise.trim() !== ""
+      ),
     };
 
     try {
@@ -195,7 +197,7 @@ const AddGame = () => {
         // Trigger Vercel redeploy
         if (process.env.VERCEL_DEPLOY_HOOK_URL) {
           await fetch(process.env.VERCEL_DEPLOY_HOOK_URL, {
-            method: 'POST',
+            method: "POST",
           });
         }
 

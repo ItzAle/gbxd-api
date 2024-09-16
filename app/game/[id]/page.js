@@ -81,11 +81,17 @@ const GameDetail = () => {
         throw new Error(errorData.error || 'Error al borrar el juego');
       }
 
-      // Si la eliminación fue exitosa, redirige al usuario
+      // Si la eliminación fue exitosa, activar el redeploy
+      if (process.env.NEXT_PUBLIC_VERCEL_DEPLOY_HOOK_URL) {
+        await fetch(process.env.NEXT_PUBLIC_VERCEL_DEPLOY_HOOK_URL, {
+          method: "POST",
+        });
+      }
+
+      // Redirigir al usuario
       router.push('/games');
     } catch (error) {
       console.error('Error al borrar el juego:', error);
-      // Muestra un mensaje de error al usuario
       setError(error.message);
     }
   };
