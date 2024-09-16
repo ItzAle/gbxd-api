@@ -131,17 +131,15 @@ export async function DELETE(request, { params }) {
     const result = await docClient.send(deleteCommand);
     console.log('Delete result:', JSON.stringify(result));
 
-    // Revalidar las rutas relevantes
-    revalidatePath('/games');
-    revalidatePath(`/game/${name}`);
-
-    // Trigger Vercel redeploy (si es necesario)
+    // Trigger Vercel redeploy
     if (process.env.VERCEL_DEPLOY_HOOK_URL) {
       console.log('Triggering Vercel redeploy');
       await fetch(process.env.VERCEL_DEPLOY_HOOK_URL, {
         method: 'POST',
       });
       console.log('Vercel redeploy triggered');
+    } else {
+      console.log('VERCEL_DEPLOY_HOOK_URL not found in environment variables');
     }
 
     return NextResponse.json(

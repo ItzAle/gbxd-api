@@ -81,11 +81,11 @@ const GameDetail = () => {
         throw new Error(errorData.error || 'Error al borrar el juego');
       }
 
-      // Redirigir y forzar una recarga
+      // Si la eliminación fue exitosa, redirige al usuario
       router.push('/games');
-      router.refresh(); // Esto forzará una recarga de los datos en la página de juegos
     } catch (error) {
       console.error('Error al borrar el juego:', error);
+      // Muestra un mensaje de error al usuario
       setError(error.message);
     }
   };
