@@ -35,8 +35,8 @@ import {
 import Navbar from "../Navbar";
 import Image from "next/image";
 import Link from "next/link";
-import { LazyLoadImage } from 'react-lazy-load-image-component';
-import 'react-lazy-load-image-component/src/effects/blur.css';
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 const theme = createTheme({
   palette: {
@@ -68,111 +68,170 @@ const GameCard = ({ game }) => (
     >
       <Card
         sx={{
-          height: "100%",
+          height: 300,
           display: "flex",
           flexDirection: "column",
           backgroundColor: "background.paper",
           borderRadius: "12px",
           overflow: "hidden",
+          position: "relative",
         }}
       >
-        <CardMedia component="div" sx={{ height: 200, position: "relative" }}>
-          <LazyLoadImage
-            src={game.coverImageUrl || "/placeholder.svg?height=200&width=400"}
-            alt={game.name}
-            effect="blur"
-            height={200}
-            width="100%"
-            style={{ objectFit: "cover" }}
-          />
-        </CardMedia>
-        <CardContent
+        <CardMedia
+          component="div"
           sx={{
-            flexGrow: 1,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            p: { xs: 1, sm: 2 },
+            height: "100%",
+            position: "relative",
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.3)",
+            },
           }}
         >
-          <div>
+          <LazyLoadImage
+            src={game.coverImageUrl || "/placeholder.svg?height=300&width=400"}
+            alt={game.name}
+            effect="blur"
+            height={300}
+            width="100%"
+            style={{
+              objectFit: "cover",
+              objectPosition: "center",
+              width: "100%",
+              height: "100%",
+            }}
+          />
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              bgcolor: "rgba(0, 0, 0, 0.7)",
+              color: "white",
+              padding: 1,
+              zIndex: 1,
+            }}
+          >
             <Typography
-              gutterBottom
               variant="h6"
               component="div"
               noWrap
-              sx={{ color: "primary.main", fontWeight: "bold" }}
+              sx={{ fontWeight: "bold" }}
             >
               {game.name}
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+          </Box>
+        </CardMedia>
+        <CardContent
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            bgcolor: "rgba(0, 0, 0, 0.8)",
+            color: "white",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            opacity: 0,
+            transition: "opacity 0.3s",
+            "&:hover": {
+              opacity: 1,
+            },
+            zIndex: 2,
+          }}
+        >
+          <Box sx={{ textAlign: "center", p: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mb: 1,
+              }}
+            >
               <CalendarToday
                 fontSize="small"
                 sx={{ mr: 1, color: "secondary.main" }}
               />
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2">
                 {game.releaseDate === "TBA"
                   ? "TBA"
                   : new Date(game.releaseDate).toLocaleDateString()}
               </Typography>
             </Box>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mb: 1,
+              }}
+            >
               <Person
                 fontSize="small"
                 sx={{ mr: 1, color: "secondary.main" }}
               />
-              <Typography variant="body2" color="text.secondary">
-                {game.publisher}
-              </Typography>
+              <Typography variant="body2">{game.publisher}</Typography>
             </Box>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mb: 1,
+              }}
+            >
               <Gamepad
                 fontSize="small"
                 sx={{ mr: 1, color: "secondary.main" }}
               />
-              <Typography variant="body2" color="text.secondary">
-                {game.developer}
-              </Typography>
+              <Typography variant="body2">{game.developer}</Typography>
             </Box>
-            <Box sx={{ mb: 1 }}>
-              <Category
-                fontSize="small"
-                sx={{
-                  mr: 1,
-                  verticalAlign: "middle",
-                  color: "secondary.main",
-                }}
-              />
+            <Box
+              sx={{
+                mb: 1,
+                display: "flex",
+                flexWrap: "wrap",
+                justifyContent: "center",
+              }}
+            >
               {(game.genres || []).map((genre, index) => (
                 <Chip
                   key={index}
                   label={genre}
                   size="small"
                   sx={{
-                    mr: 0.5,
-                    mb: 0.5,
+                    m: 0.5,
                     backgroundColor: "primary.main",
                     color: "white",
                   }}
                 />
               ))}
             </Box>
-          </div>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              mt: 2,
-              height: "3em",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-            }}
-          >
-            {game.description}
-          </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                mt: 2,
+                height: "3em",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+              }}
+            >
+              {game.description}
+            </Typography>
+          </Box>
         </CardContent>
       </Card>
     </motion.div>
@@ -236,22 +295,26 @@ const GamesList = () => {
 
   useEffect(() => {
     const filtered = games.filter((game) => {
-      const nameMatch = game.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const yearMatch = 
-        yearFilter === "all" || 
+      const nameMatch = game.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const yearMatch =
+        yearFilter === "all" ||
         (yearFilter === "TBA" && game.releaseDate === "TBA") ||
-        (game.releaseDate !== "TBA" && new Date(game.releaseDate).getFullYear().toString() === yearFilter);
-      const genreMatch = genreFilter === "all" || game.genres.includes(genreFilter);
+        (game.releaseDate !== "TBA" &&
+          new Date(game.releaseDate).getFullYear().toString() === yearFilter);
+      const genreMatch =
+        genreFilter === "all" || game.genres.includes(genreFilter);
       return nameMatch && yearMatch && genreMatch;
     });
-    
+
     const sortedFiltered = filtered.sort((a, b) => {
       if (a.releaseDate === "TBA" && b.releaseDate === "TBA") return 0;
       if (a.releaseDate === "TBA") return 1;
       if (b.releaseDate === "TBA") return -1;
       return new Date(b.releaseDate) - new Date(a.releaseDate);
     });
-    
+
     setFilteredGames(sortedFiltered);
   }, [games, searchTerm, yearFilter, genreFilter]);
 
@@ -301,12 +364,21 @@ const GamesList = () => {
   };
 
   // Obtener años únicos de los juegos
-  const years = ["TBA", ...new Set(games.map(game => 
-    game.releaseDate === "TBA" ? null : new Date(game.releaseDate).getFullYear()
-  ).filter(year => year !== null))].sort((a, b) => b - a);
+  const years = [
+    "TBA",
+    ...new Set(
+      games
+        .map((game) =>
+          game.releaseDate === "TBA"
+            ? null
+            : new Date(game.releaseDate).getFullYear()
+        )
+        .filter((year) => year !== null)
+    ),
+  ].sort((a, b) => b - a);
 
   // Obtener géneros únicos de los juegos
-  const genres = [...new Set(games.flatMap(game => game.genres))].sort();
+  const genres = [...new Set(games.flatMap((game) => game.genres))].sort();
 
   return (
     <ThemeProvider theme={theme}>
@@ -354,9 +426,13 @@ const GamesList = () => {
               >
                 <MenuItem value="all">All Years</MenuItem>
                 <MenuItem value="TBA">TBA</MenuItem>
-                {years.filter(year => year !== "TBA").map((year) => (
-                  <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
-                ))}
+                {years
+                  .filter((year) => year !== "TBA")
+                  .map((year) => (
+                    <MenuItem key={year} value={year.toString()}>
+                      {year}
+                    </MenuItem>
+                  ))}
               </Select>
             </FormControl>
             <FormControl sx={{ minWidth: 120 }}>
@@ -368,7 +444,9 @@ const GamesList = () => {
               >
                 <MenuItem value="all">All Genres</MenuItem>
                 {genres.map((genre) => (
-                  <MenuItem key={genre} value={genre}>{genre}</MenuItem>
+                  <MenuItem key={genre} value={genre}>
+                    {genre}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>

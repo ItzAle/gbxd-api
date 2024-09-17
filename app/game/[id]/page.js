@@ -71,7 +71,7 @@ const GameDetail = () => {
   const router = useRouter();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteStatus, setDeleteStatus] = useState('');
+  const [deleteStatus, setDeleteStatus] = useState("");
 
   const isAdmin = user && user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
@@ -89,41 +89,44 @@ const GameDetail = () => {
 
   const handleDelete = async () => {
     setIsDeleting(true);
-    setDeleteStatus('Borrando juego...');
+    setDeleteStatus("Borrando juego...");
     try {
       setError(null);
       const response = await fetch(`/api/game/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al borrar el juego');
+        throw new Error(errorData.error || "Error al borrar el juego");
       }
 
-      setDeleteStatus('Juego borrado. Iniciando redeploy...');
+      setDeleteStatus("Juego borrado. Iniciando redeploy...");
       if (process.env.NEXT_PUBLIC_VERCEL_DEPLOY_HOOK_URL) {
-        const redeployResponse = await fetch(process.env.NEXT_PUBLIC_VERCEL_DEPLOY_HOOK_URL, {
-          method: "POST",
-        });
+        const redeployResponse = await fetch(
+          process.env.NEXT_PUBLIC_VERCEL_DEPLOY_HOOK_URL,
+          {
+            method: "POST",
+          }
+        );
 
         if (!redeployResponse.ok) {
-          console.error('Error al activar el redeploy');
+          console.error("Error al activar el redeploy");
         } else {
-          console.log('Redeploy activado con éxito');
+          console.log("Redeploy activado con éxito");
         }
       } else {
-        console.warn('URL del hook de deploy no configurada');
+        console.warn("URL del hook de deploy no configurada");
       }
 
-      setDeleteStatus('Redeploy iniciado. Redirigiendo...');
+      setDeleteStatus("Redeploy iniciado. Redirigiendo...");
       setTimeout(() => {
-        router.push('/games');
+        router.push("/games");
       }, 2000);
     } catch (error) {
-      console.error('Error al borrar el juego:', error);
+      console.error("Error al borrar el juego:", error);
       setError(error.message);
-      setDeleteStatus('Error al borrar el juego');
+      setDeleteStatus("Error al borrar el juego");
     } finally {
       setIsDeleting(false);
       handleCloseDeleteDialog();
@@ -210,7 +213,7 @@ const GameDetail = () => {
               {game.name}
             </Typography>
             {isAdmin && (
-              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
                 <Button
                   variant="contained"
                   color="secondary"
@@ -421,7 +424,8 @@ const GameDetail = () => {
           </DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-description">
-              Esta acción no se puede deshacer. El juego será eliminado permanentemente y se activará un redeploy de la aplicación.
+              Esta acción no se puede deshacer. El juego será eliminado
+              permanentemente y se activará un redeploy de la aplicación.
             </DialogContentText>
             {isDeleting && (
               <Box sx={{ mt: 2 }}>
@@ -431,10 +435,19 @@ const GameDetail = () => {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDeleteDialog} color="primary" disabled={isDeleting}>
+            <Button
+              onClick={handleCloseDeleteDialog}
+              color="primary"
+              disabled={isDeleting}
+            >
               Cancelar
             </Button>
-            <Button onClick={handleDelete} color="error" autoFocus disabled={isDeleting}>
+            <Button
+              onClick={handleDelete}
+              color="error"
+              autoFocus
+              disabled={isDeleting}
+            >
               Sí, borrar juego
             </Button>
           </DialogActions>
