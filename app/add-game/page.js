@@ -15,6 +15,7 @@ import {
   Snackbar,
   Alert,
   useMediaQuery,
+  Typography,
 } from "@mui/material";
 import Navbar from "../components/Navbar";
 import AddGameForm from "../components/AddGameForm/AddGameForm";
@@ -280,6 +281,20 @@ const AddGame = () => {
       <CssBaseline />
       <Navbar />
       <Container maxWidth="md" sx={{ mt: 4, mb: 4, px: isMobile ? 2 : 3 }}>
+        <Box
+          sx={{
+            mb: 3,
+            backgroundColor: "error.main",
+            color: "error.contrastText",
+            p: 2,
+            borderRadius: 1,
+          }}
+        >
+          <Typography variant="body1" align="center">
+            Warning: After adding a game, wait approximately 2 minutes for it to
+            appear in the API.
+          </Typography>
+        </Box>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
