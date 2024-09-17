@@ -35,6 +35,8 @@ import {
 import Navbar from "../Navbar";
 import Image from "next/image";
 import Link from "next/link";
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
 
 const theme = createTheme({
   palette: {
@@ -75,11 +77,13 @@ const GameCard = ({ game }) => (
         }}
       >
         <CardMedia component="div" sx={{ height: 200, position: "relative" }}>
-          <Image
+          <LazyLoadImage
             src={game.coverImageUrl || "/placeholder.svg?height=200&width=400"}
             alt={game.name}
-            layout="fill"
-            objectFit="cover"
+            effect="blur"
+            height={200}
+            width="100%"
+            style={{ objectFit: "cover" }}
           />
         </CardMedia>
         <CardContent
@@ -192,21 +196,29 @@ const GamesList = () => {
   const [genreFilter, setGenreFilter] = useState("all");
 
   const fetchGames = useCallback(async () => {
-    try {
-      const response = await fetch("/api/games");
-      if (!response.ok) {
-        throw new Error("Error when obtaining games");
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/games");
+        if (!response.ok) {
+          throw new Error(`Error al obtener juegos: ${response.statusText}`);
+        }
+        const data = await response.json();
+        const sortedGames = data.sort(
+          (a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)
+        );
+        setGames(sortedGames);
+        setLoading(false);
+        return;
+      } catch (error) {
+        console.error("Error al obtener juegos:", error);
+        retries--;
+        if (retries === 0) {
+          setError(`Error al obtener juegos: ${error.message}`);
+          setLoading(false);
+        }
       }
-      const data = await response.json();
-      const sortedGames = data.sort(
-        (a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)
-      );
-      setGames(sortedGames);
-    } catch (error) {
-      console.error("Error when obtaining games:", error);
-      setError("Error when obtaining games");
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -232,8 +244,15 @@ const GamesList = () => {
       const genreMatch = genreFilter === "all" || game.genres.includes(genreFilter);
       return nameMatch && yearMatch && genreMatch;
     });
-    setFilteredGames(filtered);
-    setCurrentPage(1);
+    
+    const sortedFiltered = filtered.sort((a, b) => {
+      if (a.releaseDate === "TBA" && b.releaseDate === "TBA") return 0;
+      if (a.releaseDate === "TBA") return 1;
+      if (b.releaseDate === "TBA") return -1;
+      return new Date(b.releaseDate) - new Date(a.releaseDate);
+    });
+    
+    setFilteredGames(sortedFiltered);
   }, [games, searchTerm, yearFilter, genreFilter]);
 
   useEffect(() => {
@@ -244,14 +263,18 @@ const GamesList = () => {
 
   const updateURL = useCallback(
     (page, search, year, genre) => {
-      const params = new URLSearchParams();
-      if (page !== 1) params.append("page", page);
-      if (search) params.append("search", search);
-      if (year !== "all") params.append("year", year);
-      if (genre !== "all") params.append("genre", genre);
+      const params = new URLSearchParams(searchParams);
+      if (page !== 1) params.set("page", page.toString());
+      else params.delete("page");
+      if (search) params.set("search", search);
+      else params.delete("search");
+      if (year !== "all") params.set("year", year);
+      else params.delete("year");
+      if (genre !== "all") params.set("genre", genre);
+      else params.delete("genre");
       router.push(`/games${params.toString() ? "?" + params.toString() : ""}`);
     },
-    [router]
+    [router, searchParams]
   );
 
   const handlePageChange = (event, value) => {
