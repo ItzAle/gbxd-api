@@ -14,9 +14,13 @@ import {
   Checkbox,
   Button,
   InputAdornment,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
-import { Search as SearchIcon } from "@mui/icons-material";
+import { Search as SearchIcon, ExpandMore as ExpandMoreIcon } from "@mui/icons-material";
 import Modal from "@mui/material/Modal";
+import { platformsByBrand } from "../../constants/platforms";
 
 const GenrePlatformModals = ({
   showGenresModal,
@@ -28,7 +32,6 @@ const GenrePlatformModals = ({
   platformSearch,
   setPlatformSearch,
   filteredGenres,
-  filteredPlatforms,
   handleGenreSelection,
   handlePlatformSelection,
   genres,
@@ -49,6 +52,16 @@ const GenrePlatformModals = ({
     flexDirection: "column",
     borderRadius: "12px",
   };
+
+  const filteredPlatformsByBrand = Object.entries(platformsByBrand).reduce((acc, [brand, brandPlatforms]) => {
+    const filteredBrandPlatforms = brandPlatforms.filter(platform =>
+      platform.toLowerCase().includes(platformSearch.toLowerCase())
+    );
+    if (filteredBrandPlatforms.length > 0) {
+      acc[brand] = filteredBrandPlatforms;
+    }
+    return acc;
+  }, {});
 
   return (
     <>
@@ -114,22 +127,33 @@ const GenrePlatformModals = ({
               ),
             }}
           />
-          <List sx={{ flexGrow: 1, overflow: "auto" }}>
-            {filteredPlatforms.map((platform) => (
-              <ListItem key={platform} disablePadding>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={platforms.includes(platform)}
-                      onChange={() => handlePlatformSelection(platform)}
-                      color="primary"
-                    />
-                  }
-                  label={platform}
-                />
-              </ListItem>
+          <Box sx={{ flexGrow: 1, overflow: "auto", mt: 2 }}>
+            {Object.entries(filteredPlatformsByBrand).map(([brand, brandPlatforms]) => (
+              <Accordion key={brand}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography>{brand}</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <List>
+                    {brandPlatforms.map((platform) => (
+                      <ListItem key={platform} disablePadding>
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={platforms.includes(platform)}
+                              onChange={() => handlePlatformSelection(platform)}
+                              color="primary"
+                            />
+                          }
+                          label={platform}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </AccordionDetails>
+              </Accordion>
             ))}
-          </List>
+          </Box>
           <Button
             onClick={() => setShowPlatformsModal(false)}
             sx={{ mt: 2 }}

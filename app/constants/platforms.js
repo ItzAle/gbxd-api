@@ -1,22 +1,36 @@
-export const platformsList = [
-  "PC",
-  "PlayStation 4",
-  "PlayStation 5",
-  "Xbox One",
-  "Xbox Series X/S",
-  "Nintendo Switch",
-  "Mobile",
-  "PlayStation 3",
-  "Xbox 360",
-  "Wii U",
-  "Nintendo 3DS",
-  "PlayStation Vita",
-  "Google Stadia",
-  "Amazon Luna",
-  "Oculus Quest",
-  "HTC Vive",
-  "Nintendo Wii",
-  "Sega Dreamcast",
-  "PlayStation 2",
-  "Xbox",
-];
+export const platformsByBrand = {
+  Popular: [
+    "PlayStation 5",
+    "PlayStation 4",
+    "Xbox Series X/S",
+    "Xbox One",
+    "Nintendo Switch",
+    "PC",
+    "Android",
+    "iOS",
+  ],
+  PlayStation: [
+    "PlayStation 5",
+    "PlayStation 4",
+    "PlayStation 3",
+    "PlayStation 2",
+    "PlayStation",
+    "PlayStation Vita",
+    "PlayStation Portable",
+  ],
+  Xbox: ["Xbox Series X/S", "Xbox One", "Xbox", "Xbox 360"],
+  Nintendo: [
+    "Nintendo Switch",
+    "Nintendo Wii U",
+    "Nintendo Wii",
+    "Nintendo 3DS",
+    "Nintendo DS",
+  ],
+  PC: ["PC", "Mac"],
+  Mobile: ["Android", "iOS"],
+  Other: ["Amazon Luna", "Oculus Quest", "HTC Vive", "Sega Dreamcast"],
+};
+
+export const getAllPlatforms = () => {
+  return Object.values(platformsByBrand).flat();
+};

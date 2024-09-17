@@ -15,6 +15,7 @@ const ReviewInfo = ({ formData }) => {
     storeLinks,
     aliases,
     franchises,
+    isTBA,
   } = formData;
 
   return (

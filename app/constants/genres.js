@@ -19,4 +19,5 @@ export const genresList = [
   "Educational",
   "Music/Rhythm",
   "Visual Novel",
+  "Open World",
 ];

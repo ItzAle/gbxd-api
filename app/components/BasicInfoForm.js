@@ -1,26 +1,29 @@
 import { TextField, Box, FormControlLabel, Checkbox } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from 'dayjs'; // Asegúrate de importar dayjs
 
 const BasicInfoForm = ({ formData, setFormData, validateUrl }) => {
-  const {
-    name,
-    publisher,
-    developer,
-    releaseDate,
-    coverImageUrl,
-    isTBA,
-  } = formData;
+  const { name, publisher, developer, releaseDate, coverImageUrl, isTBA } =
+    formData;
 
   const handleChange = (field) => (event) => {
     setFormData({ ...formData, [field]: event.target.value });
   };
 
   const handleTBAChange = (event) => {
-    setFormData({ 
-      ...formData, 
+    setFormData({
+      ...formData,
       isTBA: event.target.checked,
-      releaseDate: event.target.checked ? null : formData.releaseDate
+      releaseDate: event.target.checked ? 'TBA' : null
+    });
+  };
+
+  const handleDateChange = (newValue) => {
+    setFormData({
+      ...formData,
+      releaseDate: newValue ? dayjs(newValue).format('YYYY-MM-DD') : null,
+      isTBA: false
     });
   };
 
@@ -58,7 +61,7 @@ const BasicInfoForm = ({ formData, setFormData, validateUrl }) => {
         fullWidth
         label="Cover image URL"
         value={coverImageUrl}
-        onChange={handleChange('coverImageUrl')}
+        onChange={handleChange("coverImageUrl")}
         margin="normal"
         error={coverImageUrl !== "" && !validateUrl(coverImageUrl)}
         helperText={
@@ -72,7 +75,7 @@ const BasicInfoForm = ({ formData, setFormData, validateUrl }) => {
         fullWidth
         label="Name"
         value={name}
-        onChange={handleChange('name')}
+        onChange={handleChange("name")}
         margin="normal"
         required
       />
@@ -80,7 +83,7 @@ const BasicInfoForm = ({ formData, setFormData, validateUrl }) => {
         fullWidth
         label="Publisher"
         value={publisher}
-        onChange={handleChange('publisher')}
+        onChange={handleChange("publisher")}
         margin="normal"
         required
       />
@@ -88,27 +91,29 @@ const BasicInfoForm = ({ formData, setFormData, validateUrl }) => {
         fullWidth
         label="Developer"
         value={developer}
-        onChange={handleChange('developer')}
+        onChange={handleChange("developer")}
         margin="normal"
         required
       />
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
             label="Release Date"
-            value={releaseDate}
-            onChange={(newValue) => setFormData({ ...formData, releaseDate: newValue })}
-            renderInput={(params) => <TextField {...params} fullWidth margin="normal" required={!isTBA} />}
+            value={isTBA ? null : (releaseDate ? dayjs(releaseDate) : null)}
+            onChange={handleDateChange}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                fullWidth
+                margin="normal"
+                required={!isTBA}
+              />
+            )}
             disabled={isTBA}
           />
         </LocalizationProvider>
         <FormControlLabel
-          control={
-            <Checkbox
-              checked={isTBA}
-              onChange={handleTBAChange}
-            />
-          }
+          control={<Checkbox checked={isTBA} onChange={handleTBAChange} />}
           label="TBA"
           sx={{ ml: 2 }}
         />

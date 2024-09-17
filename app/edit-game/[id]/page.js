@@ -1,6 +1,5 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
@@ -14,6 +13,7 @@ import {
   Modal,
   List,
   ListItem,
+  ListSubheader,
   FormControlLabel,
   Checkbox,
   InputAdornment,
@@ -25,7 +25,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import { darkTheme } from "@/app/theme";
 import Navbar from "@/app/components/Navbar";
 import { genresList } from "@/app/constants/genres";
-import { platformsList } from "@/app/constants/platforms";
+import { platformsByBrand, getAllPlatforms } from "@/app/constants/platforms";
 import SearchIcon from "@mui/icons-material/Search";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -58,9 +58,17 @@ const EditGame = () => {
         const gameData = await response.json();
         setGame({
           ...gameData,
-          releaseDate: gameData.releaseDate === "TBA" ? null : dayjs(gameData.releaseDate),
+          releaseDate:
+            gameData.releaseDate === "TBA" ? null : dayjs(gameData.releaseDate),
           isTBA: gameData.releaseDate === "TBA",
-          storeLinks: gameData.storeLinks || {},
+          storeLinks: gameData.storeLinks || {
+            steam: "",
+            epicGames: "",
+            gog: "",
+            playStation: "",
+            xbox: "",
+            nintendoSwitch: "",
+          },
           aliases: gameData.aliases || [""],
           franchises: gameData.franchises || [""],
         });
@@ -85,7 +93,9 @@ const EditGame = () => {
         },
         body: JSON.stringify({
           ...game,
-          releaseDate: game.isTBA ? "TBA" : game.releaseDate.format("YYYY-MM-DD"),
+          releaseDate: game.isTBA
+            ? "TBA"
+            : game.releaseDate.format("YYYY-MM-DD"),
           storeLinks: game.storeLinks,
           aliases: game.aliases.filter((alias) => alias.trim() !== ""),
           franchises: game.franchises.filter(
@@ -109,10 +119,10 @@ const EditGame = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setGame({ 
-      ...game, 
-      [name]: type === 'checkbox' ? checked : value,
-      releaseDate: name === 'isTBA' && checked ? null : game.releaseDate
+    setGame({
+      ...game,
+      [name]: type === "checkbox" ? checked : value,
+      releaseDate: name === "isTBA" && checked ? null : game.releaseDate,
     });
   };
 
@@ -155,13 +165,14 @@ const EditGame = () => {
     genre.toLowerCase().includes(genreSearch.toLowerCase())
   );
 
-  const filteredPlatforms = platformsList.filter((platform) =>
+  const allPlatforms = getAllPlatforms();
+  const filteredPlatforms = allPlatforms.filter((platform) =>
     platform.toLowerCase().includes(platformSearch.toLowerCase())
   );
 
   const getAvailableStores = () => {
     const stores = [];
-    if (game.platforms.includes("PC")) stores.push("steam", "epicGames");
+    if (game.platforms.includes("PC")) stores.push("steam", "epicGames", "gog");
     if (
       game.platforms.includes("PlayStation 4") ||
       game.platforms.includes("PlayStation 5")
@@ -230,7 +241,13 @@ const EditGame = () => {
                   setGame({ ...game, releaseDate: newValue, isTBA: false })
                 }
                 renderInput={(params) => (
-                  <TextField {...params} fullWidth margin="normal" required={!game.isTBA} disabled={game.isTBA} />
+                  <TextField
+                    {...params}
+                    fullWidth
+                    margin="normal"
+                    required={!game.isTBA}
+                    disabled={game.isTBA}
+                  />
                 )}
               />
             </LocalizationProvider>
@@ -433,18 +450,29 @@ const EditGame = () => {
             }}
           />
           <List sx={{ flexGrow: 1, overflow: "auto" }}>
-            {filteredPlatforms.map((platform) => (
-              <ListItem key={platform} disablePadding>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={game.platforms.includes(platform)}
-                      onChange={() => handlePlatformSelection(platform)}
-                    />
-                  }
-                  label={platform}
-                />
-              </ListItem>
+            {Object.entries(platformsByBrand).map(([brand, platforms]) => (
+              <React.Fragment key={brand}>
+                <ListSubheader>{brand}</ListSubheader>
+                {platforms
+                  .filter((platform) =>
+                    platform
+                      .toLowerCase()
+                      .includes(platformSearch.toLowerCase())
+                  )
+                  .map((platform) => (
+                    <ListItem key={platform} disablePadding>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={game.platforms.includes(platform)}
+                            onChange={() => handlePlatformSelection(platform)}
+                          />
+                        }
+                        label={platform}
+                      />
+                    </ListItem>
+                  ))}
+              </React.Fragment>
             ))}
           </List>
           <Button onClick={() => setShowPlatformsModal(false)} sx={{ mt: 2 }}>
@@ -452,7 +480,6 @@ const EditGame = () => {
           </Button>
         </Box>
       </Modal>
-
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}

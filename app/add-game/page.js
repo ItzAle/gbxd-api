@@ -20,7 +20,7 @@ import Navbar from "../components/Navbar";
 import AddGameForm from "../components/AddGameForm/AddGameForm";
 import GenrePlatformModals from "../components/GenrePlatformModals/GenrePlatformModals";
 import { genresList } from "../constants/genres";
-import { platformsList } from "../constants/platforms";
+import { getAllPlatforms } from "../constants/platforms"; // Asegúrate de que la ruta de importación sea correcta
 
 const theme = createTheme({
   palette: {
@@ -40,16 +40,16 @@ const theme = createTheme({
     fontFamily: "'Poppins', sans-serif",
     h2: {
       fontSize: {
-        xs: '2rem',
-        sm: '2.5rem',
-        md: '3rem',
+        xs: "2rem",
+        sm: "2.5rem",
+        md: "3rem",
       },
     },
     h5: {
       fontSize: {
-        xs: '1.2rem',
-        sm: '1.5rem',
-        md: '1.8rem',
+        xs: "1.2rem",
+        sm: "1.5rem",
+        md: "1.8rem",
       },
     },
   },
@@ -58,7 +58,7 @@ const theme = createTheme({
 const AddGame = () => {
   const [user, loading] = useAuthState(auth);
   const router = useRouter();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [formData, setFormData] = useState({
     name: "",
@@ -72,6 +72,7 @@ const AddGame = () => {
     isNSFW: false,
     storeLinks: {
       steam: "",
+      gog: "",
       epicGames: "",
       playStation: "",
       xbox: "",
@@ -90,6 +91,7 @@ const AddGame = () => {
   const [showPlatformsModal, setShowPlatformsModal] = useState(false);
   const [genreSearch, setGenreSearch] = useState("");
   const [platformSearch, setPlatformSearch] = useState("");
+  const platformsList = getAllPlatforms(); // Obtén la lista de plataformas
 
   useEffect(() => {
     if (!loading && !user) {
@@ -238,9 +240,11 @@ const AddGame = () => {
     genre.toLowerCase().includes(genreSearch.toLowerCase())
   );
 
-  const filteredPlatforms = platformsList.filter((platform) =>
-    platform.toLowerCase().includes(platformSearch.toLowerCase())
-  );
+  const filteredPlatforms = platformsList
+    ? platformsList.filter((platform) =>
+        platform.toLowerCase().includes(platformSearch.toLowerCase())
+      )
+    : [];
 
   if (loading) {
     return (
