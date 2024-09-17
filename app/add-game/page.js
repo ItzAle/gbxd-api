@@ -14,6 +14,7 @@ import {
   Backdrop,
   Snackbar,
   Alert,
+  useMediaQuery,
 } from "@mui/material";
 import Navbar from "../components/Navbar";
 import AddGameForm from "../components/AddGameForm/AddGameForm";
@@ -37,12 +38,27 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: "'Poppins', sans-serif",
+    h2: {
+      fontSize: {
+        xs: '2rem',
+        sm: '2.5rem',
+        md: '3rem',
+      },
+    },
+    h5: {
+      fontSize: {
+        xs: '1.2rem',
+        sm: '1.5rem',
+        md: '1.8rem',
+      },
+    },
   },
 });
 
 const AddGame = () => {
   const [user, loading] = useAuthState(auth);
   const router = useRouter();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [formData, setFormData] = useState({
     name: "",
@@ -252,7 +268,7 @@ const AddGame = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Navbar />
-      <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+      <Container maxWidth="md" sx={{ mt: 4, mb: 4, px: isMobile ? 2 : 3 }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -267,6 +283,7 @@ const AddGame = () => {
             validateUrl={validateUrl}
             setShowGenresModal={setShowGenresModal}
             setShowPlatformsModal={setShowPlatformsModal}
+            isMobile={isMobile}
           />
         </motion.div>
       </Container>
@@ -286,6 +303,7 @@ const AddGame = () => {
         handlePlatformSelection={handlePlatformSelection}
         genres={formData.genres}
         platforms={formData.platforms}
+        isMobile={isMobile}
       />
 
       <Backdrop

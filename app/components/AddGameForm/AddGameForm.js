@@ -8,6 +8,8 @@ import {
   Stepper,
   Step,
   StepLabel,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import BasicInfoForm from "../BasicInfoForm";
 import GenrePlatformSelector from "../GenrePlatformSelector";
@@ -32,16 +34,16 @@ const AddGameForm = ({
   validateUrl,
   setShowGenresModal,
   setShowPlatformsModal,
+  isMobile,
 }) => {
   const [activeStep, setActiveStep] = useState(0);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const handleNext = () => {
     if (validateStep(activeStep)) {
       setActiveStep((prevActiveStep) => prevActiveStep + 1);
     } else {
-      console.error(
-        "Por favor, complete todos los campos requeridos antes de continuar."
-      );
+      setSnackbarOpen(true);
     }
   };
 
@@ -65,7 +67,7 @@ const AddGameForm = ({
       case 2:
         return formData.genres.length > 0 && formData.platforms.length > 0;
       case 3:
-        return true; // No hay validación específica para los enlaces de la tienda
+        return true;
       default:
         return true;
     }
@@ -104,62 +106,59 @@ const AddGameForm = ({
   };
 
   return (
-    <Paper
-      elevation={3}
-      sx={{
-        p: 4,
-        background: "linear-gradient(145deg, #202020 0%, #2a2a2a 100%)",
-        borderRadius: "12px",
-      }}
-    >
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{ color: "primary.main", fontWeight: "bold" }}
-      >
-        Add a New Game
+    <form onSubmit={handleSubmit}>
+      <Typography variant={isMobile ? "h4" : "h2"} gutterBottom>
+        Add New Game
       </Typography>
-
-      <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+      <Stepper activeStep={activeStep} orientation={isMobile ? "vertical" : "horizontal"}>
         {steps.map((label) => (
           <Step key={label}>
             <StepLabel>{label}</StepLabel>
           </Step>
         ))}
       </Stepper>
-
-      <form onSubmit={(e) => e.preventDefault()}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeStep}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            {getStepContent(activeStep)}
-          </motion.div>
-        </AnimatePresence>
-
-        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
-          <Button
-            onClick={handleBack}
-            sx={{ mr: 1 }}
-            disabled={activeStep === 0}
-          >
-            Back
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
-            disabled={isSubmitting}
-          >
-            {activeStep === steps.length - 1 ? "Submit" : "Next"}
-          </Button>
+      <Box sx={{ mt: 2, mb: 2 }}>
+        {getStepContent(activeStep)}
+      </Box>
+      <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', pt: 2 }}>
+        <Button
+          color="inherit"
+          disabled={activeStep === 0}
+          onClick={handleBack}
+          sx={{ mr: isMobile ? 0 : 1, mb: isMobile ? 1 : 0 }}
+        >
+          Back
+        </Button>
+        <Box sx={{ flex: '1 1 auto' }} />
+        <Button
+          onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
+          variant="contained"
+          disabled={isSubmitting}
+          sx={{ width: isMobile ? '100%' : 'auto' }}
+        >
+          {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
+        </Button>
+      </Box>
+      {errors.length > 0 && (
+        <Box sx={{ mt: 2 }}>
+          {errors.map((error, index) => (
+            <Alert key={index} severity="error" sx={{ mb: 1 }}>
+              {error}
+            </Alert>
+          ))}
         </Box>
-      </form>
-    </Paper>
+      )}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity="warning" sx={{ width: '100%' }}>
+          Please fill in all required fields before proceeding.
+        </Alert>
+      </Snackbar>
+    </form>
   );
 };
 

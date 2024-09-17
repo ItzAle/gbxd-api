@@ -1,9 +1,13 @@
-import React from 'react';
+import React from "react";
 import {
-  Modal,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Chip,
+  TextField,
   Box,
   Typography,
-  TextField,
   List,
   ListItem,
   FormControlLabel,
@@ -12,6 +16,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { Search as SearchIcon } from "@mui/icons-material";
+import Modal from "@mui/material/Modal";
 
 const GenrePlatformModals = ({
   showGenresModal,
@@ -28,6 +33,7 @@ const GenrePlatformModals = ({
   handlePlatformSelection,
   genres,
   platforms,
+  isMobile,
 }) => {
   const modalStyle = {
     position: "absolute",
@@ -46,55 +52,38 @@ const GenrePlatformModals = ({
 
   return (
     <>
-      <Modal
+      <Dialog
         open={showGenresModal}
         onClose={() => setShowGenresModal(false)}
-        aria-labelledby="genres-modal-title"
+        fullScreen={isMobile}
       >
-        <Box sx={modalStyle}>
-          <Typography id="genres-modal-title" variant="h6" component="h2" gutterBottom sx={{ color: "primary.main" }}>
-            Select genres
-          </Typography>
+        <DialogTitle>Select Genres</DialogTitle>
+        <DialogContent>
           <TextField
+            autoFocus
+            margin="dense"
+            label="Search Genres"
+            type="text"
             fullWidth
-            placeholder="Search genres"
             value={genreSearch}
             onChange={(e) => setGenreSearch(e.target.value)}
-            margin="normal"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
           />
-          <List sx={{ flexGrow: 1, overflow: "auto" }}>
+          <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
             {filteredGenres.map((genre) => (
-              <ListItem key={genre} disablePadding>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={genres.includes(genre)}
-                      onChange={() => handleGenreSelection(genre)}
-                      color="primary"
-                    />
-                  }
-                  label={genre}
-                />
-              </ListItem>
+              <Chip
+                key={genre}
+                label={genre}
+                onClick={() => handleGenreSelection(genre)}
+                color={genres.includes(genre) ? "primary" : "default"}
+                sx={{ m: 0.5 }}
+              />
             ))}
-          </List>
-          <Button
-            onClick={() => setShowGenresModal(false)}
-            sx={{ mt: 2 }}
-            color="primary"
-            variant="contained"
-          >
-            Done
-          </Button>
-        </Box>
-      </Modal>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowGenresModal(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
 
       <Modal
         open={showPlatformsModal}
@@ -102,7 +91,13 @@ const GenrePlatformModals = ({
         aria-labelledby="platforms-modal-title"
       >
         <Box sx={modalStyle}>
-          <Typography id="platforms-modal-title" variant="h6" component="h2" gutterBottom sx={{ color: "primary.main" }}>
+          <Typography
+            id="platforms-modal-title"
+            variant="h6"
+            component="h2"
+            gutterBottom
+            sx={{ color: "primary.main" }}
+          >
             Select platforms
           </Typography>
           <TextField

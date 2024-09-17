@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ThemeProvider,
@@ -18,6 +19,7 @@ import {
   Box,
   TextField,
   InputAdornment,
+  Pagination,
 } from "@mui/material";
 import {
   CalendarToday,
@@ -56,8 +58,8 @@ const GameCard = ({ game }) => (
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
     >
       <Card
         sx={{
@@ -71,9 +73,7 @@ const GameCard = ({ game }) => (
       >
         <CardMedia component="div" sx={{ height: 200, position: "relative" }}>
           <Image
-            src={
-              game.coverImageUrl || "/placeholder.svg?height=200&width=400"
-            }
+            src={game.coverImageUrl || "/placeholder.svg?height=200&width=400"}
             alt={game.name}
             layout="fill"
             objectFit="cover"
@@ -85,6 +85,7 @@ const GameCard = ({ game }) => (
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
+            p: { xs: 1, sm: 2 },
           }}
         >
           <div>
@@ -169,68 +170,82 @@ const GameCard = ({ game }) => (
   </Link>
 );
 
-const GAMES_PER_PAGE = 12;
+const GAMES_PER_PAGE = 9;
 
 const GamesList = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [games, setGames] = useState([]);
   const [filteredGames, setFilteredGames] = useState([]);
   const [visibleGames, setVisibleGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(1);
-
-  const { ref, inView } = useInView({
-    threshold: 0,
-  });
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchGames = useCallback(async () => {
     try {
       const response = await fetch("/api/games");
       if (!response.ok) {
-        throw new Error("Failed to fetch games");
+        throw new Error("Error al obtener los juegos");
       }
       const data = await response.json();
       const sortedGames = data.sort(
         (a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)
       );
       setGames(sortedGames);
-      setFilteredGames(sortedGames);
     } catch (error) {
-      console.error("Error fetching games:", error);
-      setError("Failed to fetch games");
+      console.error("Error al obtener los juegos:", error);
+      setError("Error al obtener los juegos");
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const search = searchParams.get("search") || "";
+    setCurrentPage(page);
+    setSearchTerm(search);
     fetchGames();
-  }, [fetchGames]);
+  }, [searchParams, fetchGames]);
 
   useEffect(() => {
     const filtered = games.filter((game) =>
       game.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredGames(filtered);
-    setPage(1);
-    setVisibleGames(filtered.slice(0, GAMES_PER_PAGE));
-  }, [searchTerm, games]);
+  }, [games, searchTerm]);
 
   useEffect(() => {
-    if (inView) {
-      setPage((prevPage) => {
-        const nextPage = prevPage + 1;
-        const startIndex = (nextPage - 1) * GAMES_PER_PAGE;
-        const endIndex = startIndex + GAMES_PER_PAGE;
-        setVisibleGames((prevVisibleGames) => [
-          ...prevVisibleGames,
-          ...filteredGames.slice(startIndex, endIndex),
-        ]);
-        return nextPage;
-      });
-    }
-  }, [inView, filteredGames]);
+    const startIndex = (currentPage - 1) * GAMES_PER_PAGE;
+    const endIndex = startIndex + GAMES_PER_PAGE;
+    setVisibleGames(filteredGames.slice(startIndex, endIndex));
+  }, [filteredGames, currentPage]);
+
+  const updateURL = useCallback(
+    (page, search) => {
+      const params = new URLSearchParams();
+      if (page !== 1) params.append("page", page);
+      if (search) params.append("search", search);
+      router.push(`/games${params.toString() ? "?" + params.toString() : ""}`);
+    },
+    [router]
+  );
+
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+    updateURL(value, searchTerm);
+    window.scrollTo(0, 0);
+  };
+
+  const handleSearchChange = (e) => {
+    const newSearchTerm = e.target.value;
+    setSearchTerm(newSearchTerm);
+    setCurrentPage(1);
+    updateURL(1, newSearchTerm);
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -240,13 +255,15 @@ const GamesList = () => {
         <Box
           sx={{
             display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
             justifyContent: "space-between",
-            alignItems: "center",
+            alignItems: { xs: "stretch", sm: "center" },
             mb: 4,
+            gap: 2,
           }}
         >
           <Typography
-            variant="h3"
+            variant="h4"
             component="h1"
             sx={{ color: "primary.main", fontWeight: "bold" }}
           >
@@ -256,7 +273,7 @@ const GamesList = () => {
             variant="outlined"
             placeholder="Search games..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearchChange}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -265,7 +282,7 @@ const GamesList = () => {
               ),
             }}
             sx={{
-              width: "300px",
+              width: { xs: "100%", sm: "300px" },
               "& .MuiOutlinedInput-root": {
                 "& fieldset": {
                   borderColor: "secondary.main",
@@ -301,7 +318,7 @@ const GamesList = () => {
           </Alert>
         ) : (
           <AnimatePresence>
-            <Grid container spacing={4}>
+            <Grid container spacing={2}>
               {visibleGames.map((game) => (
                 <Grid item key={game.slug} xs={12} sm={6} md={4}>
                   <GameCard game={game} />
@@ -310,8 +327,15 @@ const GamesList = () => {
             </Grid>
           </AnimatePresence>
         )}
-        {!loading && !error && visibleGames.length < filteredGames.length && (
-          <Box ref={ref} sx={{ height: 20, mt: 4 }} />
+        {!loading && !error && (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+            <Pagination
+              count={Math.ceil(filteredGames.length / GAMES_PER_PAGE)}
+              page={currentPage}
+              onChange={handlePageChange}
+              color="primary"
+            />
+          </Box>
         )}
       </Container>
     </ThemeProvider>
