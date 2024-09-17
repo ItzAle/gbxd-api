@@ -213,10 +213,17 @@ const AddGame = () => {
         setSnackbarOpen(true);
 
         // Trigger Vercel redeploy
-        if (process.env.VERCEL_DEPLOY_HOOK_URL) {
-          await fetch(process.env.VERCEL_DEPLOY_HOOK_URL, {
+        try {
+          const redeployRes = await fetch("/api/trigger-redeploy", {
             method: "POST",
           });
+          if (redeployRes.ok) {
+            console.log("Redeploy iniciado con éxito");
+          } else {
+            console.warn("Error al iniciar el redeploy");
+          }
+        } catch (redeployError) {
+          console.error("Error al activar el redeploy:", redeployError);
         }
 
         router.push("/games");
