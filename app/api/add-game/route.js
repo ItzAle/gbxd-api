@@ -47,6 +47,7 @@ export async function POST(req) {
       storeLinks,
       aliases,
       franchises,
+      isTBA,
     } = await req.json();
 
     // Validar que todos los campos necesarios estén presentes
@@ -72,7 +73,7 @@ export async function POST(req) {
       Item: {
         slug,
         name,
-        releaseDate,
+        releaseDate: isTBA ? "TBA" : releaseDate,
         description,
         publisher,
         developer,
@@ -84,6 +85,7 @@ export async function POST(req) {
         storeLinks,
         aliases,
         franchises,
+        isTBA,
       },
     });
 

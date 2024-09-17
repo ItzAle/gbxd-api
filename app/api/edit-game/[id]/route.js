@@ -11,13 +11,13 @@ export async function PUT(request, { params }) {
       TableName: "games",
       Key: { slug: id },
       UpdateExpression:
-        "set #name = :name, releaseDate = :releaseDate, description = :description, publisher = :publisher, developer = :developer, platforms = :platforms, genres = :genres, coverImageUrl = :coverImageUrl, storeLinks = :storeLinks, aliases = :aliases, franchises = :franchises",
+        "set #name = :name, releaseDate = :releaseDate, description = :description, publisher = :publisher, developer = :developer, platforms = :platforms, genres = :genres, coverImageUrl = :coverImageUrl, storeLinks = :storeLinks, aliases = :aliases, franchises = :franchises, isTBA = :isTBA",
       ExpressionAttributeNames: {
         "#name": "name", // 'name' es una palabra reservada en DynamoDB
       },
       ExpressionAttributeValues: {
         ":name": updatedGame.name,
-        ":releaseDate": updatedGame.releaseDate,
+        ":releaseDate": updatedGame.isTBA ? "TBA" : updatedGame.releaseDate,
         ":description": updatedGame.description,
         ":publisher": updatedGame.publisher,
         ":developer": updatedGame.developer,
@@ -27,6 +27,7 @@ export async function PUT(request, { params }) {
         ":storeLinks": updatedGame.storeLinks,
         ":aliases": updatedGame.aliases,
         ":franchises": updatedGame.franchises,
+        ":isTBA": updatedGame.isTBA,
       },
       ReturnValues: "ALL_NEW",
     });

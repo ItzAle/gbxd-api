@@ -46,7 +46,7 @@ const ReviewInfo = ({ formData }) => {
       </Typography>
       <Typography variant="body1" paragraph>
         <strong>Release Date:</strong>{" "}
-        {releaseDate ? dayjs(releaseDate).format("MMMM D, YYYY") : "Not set"}
+        {isTBA ? "TBA" : (releaseDate ? dayjs(releaseDate).format("MMMM D, YYYY") : "Not set")}
       </Typography>
       <Typography variant="body1" paragraph>
         <strong>Description:</strong> {description}

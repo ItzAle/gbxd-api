@@ -314,7 +314,9 @@ const GameDetail = () => {
                     />
                     <Typography variant="body1">
                       Release Date:{" "}
-                      {new Date(game.releaseDate).toLocaleDateString()}
+                      {game.releaseDate === "TBA"
+                        ? "TBA"
+                        : new Date(game.releaseDate).toLocaleDateString()}
                     </Typography>
                   </Box>
                   <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>

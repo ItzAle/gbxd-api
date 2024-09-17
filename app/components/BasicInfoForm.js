@@ -1,4 +1,4 @@
-import { TextField, Box } from "@mui/material";
+import { TextField, Box, FormControlLabel, Checkbox } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
@@ -9,10 +9,19 @@ const BasicInfoForm = ({ formData, setFormData, validateUrl }) => {
     developer,
     releaseDate,
     coverImageUrl,
+    isTBA,
   } = formData;
 
   const handleChange = (field) => (event) => {
     setFormData({ ...formData, [field]: event.target.value });
+  };
+
+  const handleTBAChange = (event) => {
+    setFormData({ 
+      ...formData, 
+      isTBA: event.target.checked,
+      releaseDate: event.target.checked ? null : formData.releaseDate
+    });
   };
 
   return (
@@ -83,16 +92,27 @@ const BasicInfoForm = ({ formData, setFormData, validateUrl }) => {
         margin="normal"
         required
       />
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <DatePicker
-          label="Release date"
-          value={releaseDate}
-          onChange={(newValue) => setFormData({ ...formData, releaseDate: newValue })}
-          renderInput={(params) => (
-            <TextField {...params} fullWidth margin="normal" required />
-          )}
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
+            label="Release Date"
+            value={releaseDate}
+            onChange={(newValue) => setFormData({ ...formData, releaseDate: newValue })}
+            renderInput={(params) => <TextField {...params} fullWidth margin="normal" required={!isTBA} />}
+            disabled={isTBA}
+          />
+        </LocalizationProvider>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={isTBA}
+              onChange={handleTBAChange}
+            />
+          }
+          label="TBA"
+          sx={{ ml: 2 }}
         />
-      </LocalizationProvider>
+      </Box>
     </>
   );
 };

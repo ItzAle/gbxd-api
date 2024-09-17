@@ -58,7 +58,8 @@ const EditGame = () => {
         const gameData = await response.json();
         setGame({
           ...gameData,
-          releaseDate: dayjs(gameData.releaseDate),
+          releaseDate: gameData.releaseDate === "TBA" ? null : dayjs(gameData.releaseDate),
+          isTBA: gameData.releaseDate === "TBA",
           storeLinks: gameData.storeLinks || {},
           aliases: gameData.aliases || [""],
           franchises: gameData.franchises || [""],
@@ -84,7 +85,7 @@ const EditGame = () => {
         },
         body: JSON.stringify({
           ...game,
-          releaseDate: game.releaseDate.format("YYYY-MM-DD"),
+          releaseDate: game.isTBA ? "TBA" : game.releaseDate.format("YYYY-MM-DD"),
           storeLinks: game.storeLinks,
           aliases: game.aliases.filter((alias) => alias.trim() !== ""),
           franchises: game.franchises.filter(
@@ -107,8 +108,12 @@ const EditGame = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setGame({ ...game, [name]: value });
+    const { name, value, type, checked } = e.target;
+    setGame({ 
+      ...game, 
+      [name]: type === 'checkbox' ? checked : value,
+      releaseDate: name === 'isTBA' && checked ? null : game.releaseDate
+    });
   };
 
   const handleGenreSelection = (genre) => {
@@ -222,13 +227,24 @@ const EditGame = () => {
                 label="Release Date"
                 value={game.releaseDate}
                 onChange={(newValue) =>
-                  setGame({ ...game, releaseDate: newValue })
+                  setGame({ ...game, releaseDate: newValue, isTBA: false })
                 }
                 renderInput={(params) => (
-                  <TextField {...params} fullWidth margin="normal" required />
+                  <TextField {...params} fullWidth margin="normal" required={!game.isTBA} disabled={game.isTBA} />
                 )}
               />
             </LocalizationProvider>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={game.isTBA}
+                  onChange={handleChange}
+                  name="isTBA"
+                />
+              }
+              label="TBA"
+              sx={{ ml: 2 }}
+            />
             <TextField
               fullWidth
               label="Descripción"

@@ -20,6 +20,10 @@ import {
   TextField,
   InputAdornment,
   Pagination,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import {
   CalendarToday,
@@ -103,7 +107,9 @@ const GameCard = ({ game }) => (
                 sx={{ mr: 1, color: "secondary.main" }}
               />
               <Typography variant="body2" color="text.secondary">
-                {new Date(game.releaseDate).toLocaleDateString()}
+                {game.releaseDate === "TBA"
+                  ? "TBA"
+                  : new Date(game.releaseDate).toLocaleDateString()}
               </Typography>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
@@ -182,12 +188,14 @@ const GamesList = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [yearFilter, setYearFilter] = useState("all");
+  const [genreFilter, setGenreFilter] = useState("all");
 
   const fetchGames = useCallback(async () => {
     try {
       const response = await fetch("/api/games");
       if (!response.ok) {
-        throw new Error("Error al obtener los juegos");
+        throw new Error("Error when obtaining games");
       }
       const data = await response.json();
       const sortedGames = data.sort(
@@ -195,8 +203,8 @@ const GamesList = () => {
       );
       setGames(sortedGames);
     } catch (error) {
-      console.error("Error al obtener los juegos:", error);
-      setError("Error al obtener los juegos");
+      console.error("Error when obtaining games:", error);
+      setError("Error when obtaining games");
     } finally {
       setLoading(false);
     }
@@ -205,17 +213,28 @@ const GamesList = () => {
   useEffect(() => {
     const page = parseInt(searchParams.get("page") || "1", 10);
     const search = searchParams.get("search") || "";
+    const year = searchParams.get("year") || "all";
+    const genre = searchParams.get("genre") || "all";
     setCurrentPage(page);
     setSearchTerm(search);
+    setYearFilter(year);
+    setGenreFilter(genre);
     fetchGames();
   }, [searchParams, fetchGames]);
 
   useEffect(() => {
-    const filtered = games.filter((game) =>
-      game.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filtered = games.filter((game) => {
+      const nameMatch = game.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const yearMatch = 
+        yearFilter === "all" || 
+        (yearFilter === "TBA" && game.releaseDate === "TBA") ||
+        (game.releaseDate !== "TBA" && new Date(game.releaseDate).getFullYear().toString() === yearFilter);
+      const genreMatch = genreFilter === "all" || game.genres.includes(genreFilter);
+      return nameMatch && yearMatch && genreMatch;
+    });
     setFilteredGames(filtered);
-  }, [games, searchTerm]);
+    setCurrentPage(1);
+  }, [games, searchTerm, yearFilter, genreFilter]);
 
   useEffect(() => {
     const startIndex = (currentPage - 1) * GAMES_PER_PAGE;
@@ -224,10 +243,12 @@ const GamesList = () => {
   }, [filteredGames, currentPage]);
 
   const updateURL = useCallback(
-    (page, search) => {
+    (page, search, year, genre) => {
       const params = new URLSearchParams();
       if (page !== 1) params.append("page", page);
       if (search) params.append("search", search);
+      if (year !== "all") params.append("year", year);
+      if (genre !== "all") params.append("genre", genre);
       router.push(`/games${params.toString() ? "?" + params.toString() : ""}`);
     },
     [router]
@@ -235,7 +256,7 @@ const GamesList = () => {
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
-    updateURL(value, searchTerm);
+    updateURL(value, searchTerm, yearFilter, genreFilter);
     window.scrollTo(0, 0);
   };
 
@@ -243,8 +264,26 @@ const GamesList = () => {
     const newSearchTerm = e.target.value;
     setSearchTerm(newSearchTerm);
     setCurrentPage(1);
-    updateURL(1, newSearchTerm);
+    updateURL(1, newSearchTerm, yearFilter, genreFilter);
   };
+
+  const handleYearFilterChange = (event) => {
+    setYearFilter(event.target.value);
+    updateURL(1, searchTerm, event.target.value, genreFilter);
+  };
+
+  const handleGenreFilterChange = (event) => {
+    setGenreFilter(event.target.value);
+    updateURL(1, searchTerm, yearFilter, event.target.value);
+  };
+
+  // Obtener años únicos de los juegos
+  const years = ["TBA", ...new Set(games.map(game => 
+    game.releaseDate === "TBA" ? null : new Date(game.releaseDate).getFullYear()
+  ).filter(year => year !== null))].sort((a, b) => b - a);
+
+  // Obtener géneros únicos de los juegos
+  const genres = [...new Set(games.flatMap(game => game.genres))].sort();
 
   return (
     <ThemeProvider theme={theme}>
@@ -268,33 +307,49 @@ const GamesList = () => {
           >
             All Games
           </Typography>
-          <TextField
-            variant="outlined"
-            placeholder="Search games..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search sx={{ color: "secondary.main" }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              width: { xs: "100%", sm: "300px" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: "secondary.main",
-                },
-                "&:hover fieldset": {
-                  borderColor: "secondary.main",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "primary.main",
-                },
-              },
-            }}
-          />
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+            <TextField
+              variant="outlined"
+              placeholder="Search games..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search sx={{ color: "secondary.main" }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ width: { xs: "100%", sm: "200px" } }}
+            />
+            <FormControl sx={{ minWidth: 120 }}>
+              <InputLabel>Year</InputLabel>
+              <Select
+                value={yearFilter}
+                onChange={handleYearFilterChange}
+                label="Year"
+              >
+                <MenuItem value="all">All Years</MenuItem>
+                <MenuItem value="TBA">TBA</MenuItem>
+                {years.filter(year => year !== "TBA").map((year) => (
+                  <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl sx={{ minWidth: 120 }}>
+              <InputLabel>Genre</InputLabel>
+              <Select
+                value={genreFilter}
+                onChange={handleGenreFilterChange}
+                label="Genre"
+              >
+                <MenuItem value="all">All Genres</MenuItem>
+                {genres.map((genre) => (
+                  <MenuItem key={genre} value={genre}>{genre}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
         </Box>
         {loading ? (
           <Grid container spacing={4}>
