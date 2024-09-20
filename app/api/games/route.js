@@ -1,3 +1,10 @@
+import { NextResponse } from "next/server";
+import { docClient } from "../../../lib/aws-config";
+import { ScanCommand } from "@aws-sdk/lib-dynamodb";
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   const headers = {
     "Access-Control-Allow-Credentials": "true",
@@ -19,12 +26,12 @@ export async function GET() {
 
     console.log(`Fetched ${games.length} games from DynamoDB`);
 
-    return NextResponse.json(games, {
-      status: 200,
+    return NextResponse.json(games, { 
+      status: 200, 
       headers: {
         ...headers,
-        "Cache-Control": "no-store, max-age=0",
-      },
+        'Cache-Control': 'no-store, max-age=0',
+      }
     });
   } catch (error) {
     console.error("Error fetching games:", error);
