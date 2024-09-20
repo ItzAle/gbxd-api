@@ -1,27 +1,5 @@
 import { NextResponse } from "next/server";
-import { docClient } from "../../../lib/aws-config";
-import { ScanCommand } from "@aws-sdk/lib-dynamodb";
-
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-async function scanWithRetry(command, maxRetries = 5) {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await docClient.send(command);
-    } catch (error) {
-      if (error.name === 'ProvisionedThroughputExceededException' && i < maxRetries - 1) {
-        const waitTime = Math.pow(2, i) * 100; // Retroceso exponencial
-        console.log(`Reintentando en ${waitTime}ms...`);
-        await delay(waitTime);
-      } else {
-        throw error;
-      }
-    }
-  }
-}
+import { supabase } from "../../../lib/supabase";
 
 export async function GET() {
   const headers = {
@@ -31,26 +9,29 @@ export async function GET() {
     "Access-Control-Allow-Headers":
       "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
     "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-    "Pragma": "no-cache",
-    "Expires": "0",
+    Pragma: "no-cache",
+    Expires: "0",
   };
 
   try {
-    console.log("Iniciando consulta a DynamoDB...");
-    const command = new ScanCommand({
-      TableName: "games",
-      ConsistentRead: true,
-    });
+    console.log("Iniciando consulta a Supabase...");
 
-    const response = await scanWithRetry(command);
-    const games = response.Items;
+    let { data: games, error } = await supabase.from("games").select("*");
 
-    console.log(`Fetched ${games.length} games from DynamoDB`);
-    console.log("Primer juego:", JSON.stringify(games[0], null, 2));
+    if (error) {
+      console.error("Error de Supabase:", error);
+      throw error;
+    }
 
-    return NextResponse.json(games, { 
-      status: 200, 
-      headers
+    console.log(`Fetched ${games ? games.length : 0} games from Supabase`);
+    console.log(
+      "Primer juego:",
+      games && games.length > 0 ? JSON.stringify(games[0]) : "No hay juegos"
+    );
+
+    return NextResponse.json(games || [], {
+      status: 200,
+      headers,
     });
   } catch (error) {
     console.error("Error fetching games:", error);

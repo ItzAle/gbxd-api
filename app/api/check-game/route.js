@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { docClient } from '../../../lib/aws-config';
-import { QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { supabase } from '../../../lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,18 +12,15 @@ export async function GET(request) {
   }
 
   try {
-    const command = new QueryCommand({
-      TableName: "games",
-      KeyConditionExpression: "slug = :slug",
-      ExpressionAttributeValues: {
-        ":slug": name.toLowerCase(),
-      },
-      Limit: 1
-    });
+    const { data, error, count } = await supabase
+      .from('games')
+      .select('slug', { count: 'exact' })
+      .eq('slug', name.toLowerCase())
+      .limit(1);
 
-    const response = await docClient.send(command);
+    if (error) throw error;
 
-    const exists = response.Items && response.Items.length > 0;
+    const exists = count > 0;
 
     return NextResponse.json({ exists });
   } catch (error) {

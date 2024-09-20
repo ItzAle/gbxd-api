@@ -101,25 +101,7 @@ const GameDetail = () => {
         throw new Error(errorData.error || "Error al borrar el juego");
       }
 
-      setDeleteStatus("Juego borrado. Iniciando redeploy...");
-      if (process.env.NEXT_PUBLIC_VERCEL_DEPLOY_HOOK_URL) {
-        const redeployResponse = await fetch(
-          process.env.NEXT_PUBLIC_VERCEL_DEPLOY_HOOK_URL,
-          {
-            method: "POST",
-          }
-        );
-
-        if (!redeployResponse.ok) {
-          console.error("Error al activar el redeploy");
-        } else {
-          console.log("Redeploy activado con éxito");
-        }
-      } else {
-        console.warn("URL del hook de deploy no configurada");
-      }
-
-      setDeleteStatus("Redeploy iniciado. Redirigiendo...");
+      setDeleteStatus("Juego borrado exitosamente");
       setTimeout(() => {
         router.push("/games");
       }, 2000);
@@ -363,28 +345,34 @@ const GameDetail = () => {
                       </Typography>
                     </Box>
                   )}
-                  <Box sx={{ mb: 2 }}>
-                    <Category
-                      fontSize="small"
-                      sx={{
-                        mr: 1,
-                        verticalAlign: "middle",
-                        color: "secondary.main",
-                      }}
-                    />
-                    {game.genres.map((genre, index) => (
-                      <Chip
-                        key={index}
-                        label={genre}
+                  {game.genres && game.genres.length > 0 ? (
+                    <Box sx={{ mb: 2 }}>
+                      <Category
+                        fontSize="small"
                         sx={{
-                          mr: 0.5,
-                          mb: 0.5,
-                          backgroundColor: "primary.main",
-                          color: "white",
+                          mr: 1,
+                          verticalAlign: "middle",
+                          color: "secondary.main",
                         }}
                       />
-                    ))}
-                  </Box>
+                      {game.genres.map((genre, index) => (
+                        <Chip
+                          key={index}
+                          label={genre}
+                          sx={{
+                            mr: 0.5,
+                            mb: 0.5,
+                            backgroundColor: "primary.main",
+                            color: "white",
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" sx={{ mb: 2 }}>
+                      There are no genres
+                    </Typography>
+                  )}
                   <Typography variant="body1" paragraph sx={{ flexGrow: 1 }}>
                     {game.description}
                   </Typography>
@@ -425,7 +413,7 @@ const GameDetail = () => {
           <DialogContent>
             <DialogContentText id="alert-dialog-description">
               Esta acción no se puede deshacer. El juego será eliminado
-              permanentemente y se activará un redeploy de la aplicación.
+              permanentemente.
             </DialogContentText>
             {isDeleting && (
               <Box sx={{ mt: 2 }}>

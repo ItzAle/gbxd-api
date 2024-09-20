@@ -1,10 +1,9 @@
-import { docClient } from "../../../../lib/aws-config";
-import { ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { NextResponse } from "next/server";
+import { supabase } from "../../../../lib/supabase";
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  const limit = parseInt(searchParams.get("limit")) || 10; // Por defecto, devuelve 10 juegos
+  const limit = parseInt(searchParams.get("limit")) || 10;
 
   const headers = {
     "Access-Control-Allow-Credentials": "true",
@@ -19,30 +18,16 @@ export async function GET(request) {
   }
 
   try {
-    const today = new Date().toISOString().split("T")[0]; // Formato YYYY-MM-DD
+    const today = new Date().toISOString().split("T")[0];
 
-    const command = new ScanCommand({
-      TableName: "games",
-      FilterExpression: "releaseDate > :today",
-      ExpressionAttributeValues: {
-        ":today": today,
-      },
-    });
+    let { data: upcomingGames, error } = await supabase
+      .from('games')
+      .select('*')
+      .gt('releaseDate', today)
+      .order('releaseDate', { ascending: true })
+      .limit(limit);
 
-    console.log("DynamoDB command:", JSON.stringify(command, null, 2));
-
-    const response = await docClient.send(command);
-    console.log("DynamoDB response:", JSON.stringify(response, null, 2));
-
-    let upcomingGames = response.Items;
-
-    // Ordenar los juegos por fecha de lanzamiento, los más cercanos primero
-    upcomingGames.sort(
-      (a, b) => new Date(a.releaseDate) - new Date(b.releaseDate)
-    );
-
-    // Limitar el número de juegos devueltos
-    upcomingGames = upcomingGames.slice(0, limit);
+    if (error) throw error;
 
     console.log(`Found ${upcomingGames.length} upcoming games`);
 
@@ -55,10 +40,9 @@ export async function GET(request) {
 
     return NextResponse.json(upcomingGames, { status: 200, headers });
   } catch (error) {
+    console.error("Error fetching upcoming games:", error);
     return NextResponse.json(
-      {
-        error: "Internal Server Error",
-      },
+      { error: "Internal Server Error" },
       { status: 500, headers }
     );
   }

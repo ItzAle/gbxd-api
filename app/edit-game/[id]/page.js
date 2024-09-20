@@ -71,6 +71,8 @@ const EditGame = () => {
           },
           aliases: gameData.aliases || [""],
           franchises: gameData.franchises || [""],
+          genres: gameData.genres || [],
+          platforms: gameData.platforms || [],
         });
         setImagePreview(gameData.coverImageUrl);
       } catch (err) {
@@ -119,37 +121,37 @@ const EditGame = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setGame({
-      ...game,
+    setGame((prevGame) => ({
+      ...prevGame,
       [name]: type === "checkbox" ? checked : value,
-      releaseDate: name === "isTBA" && checked ? null : game.releaseDate,
-    });
+      releaseDate: name === "isTBA" && checked ? null : prevGame.releaseDate,
+    }));
   };
 
   const handleGenreSelection = (genre) => {
-    setGame((prev) => ({
-      ...prev,
-      genres: prev.genres.includes(genre)
-        ? prev.genres.filter((g) => g !== genre)
-        : [...prev.genres, genre],
+    setGame((prevGame) => ({
+      ...prevGame,
+      genres: prevGame.genres.includes(genre)
+        ? prevGame.genres.filter((g) => g !== genre)
+        : [...prevGame.genres, genre],
     }));
   };
 
   const handlePlatformSelection = (platform) => {
-    setGame((prev) => ({
-      ...prev,
-      platforms: prev.platforms.includes(platform)
-        ? prev.platforms.filter((p) => p !== platform)
-        : [...prev.platforms, platform],
+    setGame((prevGame) => ({
+      ...prevGame,
+      platforms: prevGame.platforms.includes(platform)
+        ? prevGame.platforms.filter((p) => p !== platform)
+        : [...prevGame.platforms, platform],
     }));
   };
 
   const handleStoreLinksChange = (e) => {
     const { name, value } = e.target;
-    setGame((prev) => ({
-      ...prev,
+    setGame((prevGame) => ({
+      ...prevGame,
       storeLinks: {
-        ...prev.storeLinks,
+        ...prevGame.storeLinks,
         [name]: value,
       },
     }));
@@ -157,7 +159,7 @@ const EditGame = () => {
 
   const handleImageChange = (e) => {
     const { name, value } = e.target;
-    setGame({ ...game, [name]: value });
+    setGame((prevGame) => ({ ...prevGame, [name]: value }));
     setImagePreview(value);
   };
 
@@ -197,6 +199,10 @@ const EditGame = () => {
     return null;
   }
 
+  if (!game) {
+    return <Typography>Error: No se pudo cargar el juego</Typography>;
+  }
+
   return (
     <ThemeProvider theme={darkTheme}>
       <Navbar />
@@ -210,7 +216,7 @@ const EditGame = () => {
               fullWidth
               label="Name"
               name="name"
-              value={game.name}
+              value={game.name || ""}
               onChange={handleChange}
               margin="normal"
               required
@@ -219,7 +225,7 @@ const EditGame = () => {
               fullWidth
               label="Developer"
               name="developer"
-              value={game.developer}
+              value={game.developer || ""}
               onChange={handleChange}
               margin="normal"
               required
@@ -228,7 +234,7 @@ const EditGame = () => {
               fullWidth
               label="Publisher"
               name="publisher"
-              value={game.publisher}
+              value={game.publisher || ""}
               onChange={handleChange}
               margin="normal"
               required
@@ -266,7 +272,7 @@ const EditGame = () => {
               fullWidth
               label="Descripción"
               name="description"
-              value={game.description}
+              value={game.description || ""}
               onChange={handleChange}
               margin="normal"
               multiline
@@ -286,13 +292,19 @@ const EditGame = () => {
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1">Géneros</Typography>
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {game.genres.map((genre) => (
-                  <Chip
-                    key={genre}
-                    label={genre}
-                    onDelete={() => handleGenreSelection(genre)}
-                  />
-                ))}
+                {game.genres && game.genres.length > 0 ? (
+                  game.genres.map((genre) => (
+                    <Chip
+                      key={genre}
+                      label={genre}
+                      onDelete={() => handleGenreSelection(genre)}
+                    />
+                  ))
+                ) : (
+                  <Typography variant="body2">
+                    No hay géneros añadidos
+                  </Typography>
+                )}
                 <Button onClick={() => setShowGenresModal(true)}>
                   Add genre
                 </Button>
@@ -301,13 +313,19 @@ const EditGame = () => {
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1">Plataformas</Typography>
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {game.platforms.map((platform) => (
-                  <Chip
-                    key={platform}
-                    label={platform}
-                    onDelete={() => handlePlatformSelection(platform)}
-                  />
-                ))}
+                {game.platforms && game.platforms.length > 0 ? (
+                  game.platforms.map((platform) => (
+                    <Chip
+                      key={platform}
+                      label={platform}
+                      onDelete={() => handlePlatformSelection(platform)}
+                    />
+                  ))
+                ) : (
+                  <Typography variant="body2">
+                    No hay plataformas añadidas
+                  </Typography>
+                )}
                 <Button onClick={() => setShowPlatformsModal(true)}>
                   Add platform
                 </Button>
@@ -317,7 +335,7 @@ const EditGame = () => {
               fullWidth
               label="Cover image URL"
               name="coverImageUrl"
-              value={game?.coverImageUrl || ""}
+              value={game.coverImageUrl || ""}
               onChange={handleImageChange}
               margin="normal"
               required

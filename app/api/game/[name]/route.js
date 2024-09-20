@@ -1,5 +1,4 @@
-import { docClient } from "../../../../lib/aws-config";
-import { QueryCommand, UpdateCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { supabase } from "../../../../lib/supabase";
 import { NextResponse } from "next/server";
 import { revalidatePath } from 'next/cache';
 
@@ -17,32 +16,32 @@ export async function GET(request, { params }) {
   }
 
   const { name } = params;
+  console.log("Buscando juego con slug:", name);
 
   try {
-    const command = new QueryCommand({
-      TableName: "games",
-      KeyConditionExpression: "slug = :slug",
-      ExpressionAttributeValues: {
-        ":slug": name,
-      },
-    });
+    let { data: game, error } = await supabase
+      .from('games')
+      .select('*')
+      .eq('slug', decodeURIComponent(name))
+      .single();
 
-    const response = await docClient.send(command);
+    if (error) throw error;
 
-    if (response.Items.length === 0) {
+    if (!game) {
+      console.log(`Juego no encontrado para el slug: ${name}`);
       return NextResponse.json(
-        { error: "Game not found" },
+        { error: "Juego no encontrado" },
         { status: 404, headers }
       );
     }
 
-    const gameData = response.Items[0];
+    console.log(`Juego encontrado:`, game);
 
-    return NextResponse.json(gameData, { status: 200, headers });
+    return NextResponse.json(game, { status: 200, headers });
   } catch (error) {
-    console.error("Error fetching game:", error);
+    console.error("Error al buscar el juego:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Error interno del servidor", details: error.message },
       { status: 500, headers }
     );
   }
@@ -63,43 +62,26 @@ export async function PUT(request, { params }) {
 
   const { name } = params;
   const updatedGame = await request.json();
-  const { oldSlug, ...gameData } = updatedGame;
 
   try {
-    const updateCommand = new UpdateCommand({
-      TableName: "games",
-      Key: { slug: oldSlug },
-      UpdateExpression:
-        "set #name = :name, description = :description, releaseDate = :releaseDate, publisher = :publisher, developer = :developer, platforms = :platforms, genres = :genres, coverImageUrl = :coverImageUrl, slug = :newSlug",
-      ExpressionAttributeNames: {
-        "#name": "name",
-      },
-      ExpressionAttributeValues: {
-        ":name": gameData.name,
-        ":description": gameData.description,
-        ":releaseDate": gameData.releaseDate,
-        ":publisher": gameData.publisher,
-        ":developer": gameData.developer,
-        ":platforms": gameData.platforms,
-        ":genres": gameData.genres,
-        ":coverImageUrl": gameData.coverImageUrl,
-        ":newSlug": gameData.slug,
-      },
-      ReturnValues: "ALL_NEW",
-    });
+    const { data, error } = await supabase
+      .from('games')
+      .update(updatedGame)
+      .eq('slug', name)
+      .select();
 
-    const result = await docClient.send(updateCommand);
+    if (error) throw error;
 
     return NextResponse.json(
       {
         message: "Game updated successfully",
-        updatedSlug: gameData.slug,
+        updatedSlug: updatedGame.slug,
       },
       { status: 200, headers }
     );
   } catch (error) {
     return NextResponse.json(
-      { error: "Internal Server Error: " },
+      { error: "Internal Server Error: " + error.message },
       { status: 500, headers }
     );
   }
@@ -122,14 +104,14 @@ export async function DELETE(request, { params }) {
 
   try {
     console.log('Attempting to delete game with slug:', name);
-    const deleteCommand = new DeleteCommand({
-      TableName: "games",
-      Key: { slug: name },
-    });
+    const { error } = await supabase
+      .from('games')
+      .delete()
+      .eq('slug', name);
 
-    console.log('Delete command:', JSON.stringify(deleteCommand));
-    const result = await docClient.send(deleteCommand);
-    console.log('Delete result:', JSON.stringify(result));
+    if (error) throw error;
+
+    console.log('Game deleted successfully');
 
     // Trigger Vercel redeploy
     if (process.env.VERCEL_DEPLOY_HOOK_URL) {
