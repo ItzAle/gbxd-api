@@ -110,17 +110,24 @@ const AddGameForm = ({
       <Typography variant={isMobile ? "h4" : "h2"} gutterBottom>
         Add New Game
       </Typography>
-      <Stepper activeStep={activeStep} orientation={isMobile ? "vertical" : "horizontal"}>
+      <Stepper
+        activeStep={activeStep}
+        orientation={isMobile ? "vertical" : "horizontal"}
+      >
         {steps.map((label) => (
           <Step key={label}>
             <StepLabel>{label}</StepLabel>
           </Step>
         ))}
       </Stepper>
-      <Box sx={{ mt: 2, mb: 2 }}>
-        {getStepContent(activeStep)}
-      </Box>
-      <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', pt: 2 }}>
+      <Box sx={{ mt: 2, mb: 2 }}>{getStepContent(activeStep)}</Box>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: isMobile ? "column" : "row",
+          pt: 2,
+        }}
+      >
         <Button
           color="inherit"
           disabled={activeStep === 0}
@@ -129,14 +136,14 @@ const AddGameForm = ({
         >
           Back
         </Button>
-        <Box sx={{ flex: '1 1 auto' }} />
+        <Box sx={{ flex: "1 1 auto" }} />
         <Button
           onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
           variant="contained"
           disabled={isSubmitting}
-          sx={{ width: isMobile ? '100%' : 'auto' }}
+          sx={{ width: isMobile ? "100%" : "auto" }}
         >
-          {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
+          {activeStep === steps.length - 1 ? "Submit" : "Next"}
         </Button>
       </Box>
       {errors.length > 0 && (
@@ -152,9 +159,13 @@ const AddGameForm = ({
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert onClose={() => setSnackbarOpen(false)} severity="warning" sx={{ width: '100%' }}>
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity="warning"
+          sx={{ width: "100%" }}
+        >
           Please fill in all required fields before proceeding.
         </Alert>
       </Snackbar>
