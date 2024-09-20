@@ -36,10 +36,6 @@ export default function DonatePage() {
           <Typography variant="h5" component="p" gutterBottom>
             Your support helps us maintain the servers and improve the API
           </Typography>
-          <Typography variant="body1" paragraph>
-            Thank you for your donation. Your support helps us maintain the
-            servers and improve the API.
-          </Typography>
           <Button
             variant="contained"
             color="primary"
