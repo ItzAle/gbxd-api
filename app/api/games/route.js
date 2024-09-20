@@ -5,6 +5,24 @@ import { ScanCommand } from "@aws-sdk/lib-dynamodb";
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function scanWithRetry(command, maxRetries = 5) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await docClient.send(command);
+    } catch (error) {
+      if (error.name === 'ProvisionedThroughputExceededException' && i < maxRetries - 1) {
+        const waitTime = Math.pow(2, i) * 100; // Retroceso exponencial
+        console.log(`Reintentando en ${waitTime}ms...`);
+        await delay(waitTime);
+      } else {
+        throw error;
+      }
+    }
+  }
+}
+
 export async function GET() {
   const headers = {
     "Access-Control-Allow-Credentials": "true",
@@ -24,7 +42,7 @@ export async function GET() {
       ConsistentRead: true,
     });
 
-    const response = await docClient.send(command);
+    const response = await scanWithRetry(command);
     const games = response.Items;
 
     console.log(`Fetched ${games.length} games from DynamoDB`);
