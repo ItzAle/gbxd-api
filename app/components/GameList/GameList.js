@@ -258,11 +258,18 @@ const GamesList = () => {
     try {
       setLoading(true);
       const timestamp = new Date().getTime();
-      const response = await fetch(`/api/games?t=${timestamp}`);
+      const response = await fetch(`/api/games?t=${timestamp}`, {
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      });
       if (!response.ok) {
         throw new Error(`Error al obtener juegos: ${response.statusText}`);
       }
       const data = await response.json();
+      console.log("Juegos obtenidos:", data.length);
       const sortedGames = data.sort(
         (a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)
       );
@@ -274,6 +281,10 @@ const GamesList = () => {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchGames();
+  }, [fetchGames]);
 
   useEffect(() => {
     const page = parseInt(searchParams.get("page") || "1", 10);

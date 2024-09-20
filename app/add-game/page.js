@@ -181,6 +181,10 @@ const AddGame = () => {
         setSnackbarMessage("Game added successfully!");
         setSnackbarSeverity("success");
         setSnackbarOpen(true);
+        
+        // Forzar actualización de la lista de juegos
+        await fetch('/api/revalidate?path=/games');
+        
         router.push("/games");
       } else {
         const result = await res.json();
