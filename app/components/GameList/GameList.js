@@ -255,29 +255,22 @@ const GamesList = () => {
   const [genreFilter, setGenreFilter] = useState("all");
 
   const fetchGames = useCallback(async () => {
-    let retries = 3;
-    while (retries > 0) {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/games");
-        if (!response.ok) {
-          throw new Error(`Error al obtener juegos: ${response.statusText}`);
-        }
-        const data = await response.json();
-        const sortedGames = data.sort(
-          (a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)
-        );
-        setGames(sortedGames);
-        setLoading(false);
-        return;
-      } catch (error) {
-        console.error("Error al obtener juegos:", error);
-        retries--;
-        if (retries === 0) {
-          setError(`Error al obtener juegos: ${error.message}`);
-          setLoading(false);
-        }
+    try {
+      setLoading(true);
+      const response = await fetch("/api/games");
+      if (!response.ok) {
+        throw new Error(`Error al obtener juegos: ${response.statusText}`);
       }
+      const data = await response.json();
+      const sortedGames = data.sort(
+        (a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)
+      );
+      setGames(sortedGames);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error al obtener juegos:", error);
+      setError(`Error al obtener juegos: ${error.message}`);
+      setLoading(false);
     }
   }, []);
 

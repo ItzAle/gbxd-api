@@ -159,37 +159,6 @@ const AddGame = () => {
       return;
     }
 
-    try {
-      const checkResponse = await fetch(
-        `/api/check-game?name=${encodeURIComponent(formData.name)}`
-      );
-
-      if (!checkResponse.ok) {
-        throw new Error(
-          `Failed to check game existence: ${checkResponse.status}`
-        );
-      }
-
-      const checkResult = await checkResponse.json();
-
-      if (checkResult.exists) {
-        setIsSubmitting(false);
-        setSnackbarMessage(
-          "A game with this name already exists. Please use a different name."
-        );
-        setSnackbarSeverity("warning");
-        setSnackbarOpen(true);
-        return;
-      }
-    } catch (error) {
-      console.error("Error checking game existence:", error);
-      setIsSubmitting(false);
-      setSnackbarMessage(`Error checking game existence: ${error.message}`);
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
-      return;
-    }
-
     const formDataToSend = {
       ...formData,
       userId: user.uid,
@@ -212,21 +181,6 @@ const AddGame = () => {
         setSnackbarMessage("Game added successfully!");
         setSnackbarSeverity("success");
         setSnackbarOpen(true);
-
-        // Trigger Vercel redeploy
-        try {
-          const redeployRes = await fetch("/api/trigger-redeploy", {
-            method: "POST",
-          });
-          if (redeployRes.ok) {
-            console.log("Redeploy iniciado con éxito");
-          } else {
-            console.warn("Error al iniciar el redeploy");
-          }
-        } catch (redeployError) {
-          console.error("Error al activar el redeploy:", redeployError);
-        }
-
         router.push("/games");
       } else {
         const result = await res.json();
