@@ -1,6 +1,6 @@
-import { docClient } from "../../../lib/aws-config";
-import { ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { NextResponse } from "next/server";
+import { docClient } from "../../../lib/aws-config";
+import { ScanCommand, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -14,10 +14,6 @@ export async function GET() {
       "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
     "Cache-Control": "no-store, max-age=0",
   };
-
-  if (request.method === "OPTIONS") {
-    return new Response(null, { status: 200, headers });
-  }
 
   try {
     const command = new ScanCommand({
@@ -43,5 +39,29 @@ export async function GET() {
       { error: "Internal Server Error" },
       { status: 500, headers }
     );
+  }
+}
+
+export async function getGames() {
+  const command = new ScanCommand({
+    TableName: "games",
+  });
+
+  const response = await docClient.send(command);
+  return response.Items;
+}
+
+export async function getGame(slug) {
+  const command = new GetCommand({
+    TableName: "games",
+    Key: { slug: slug },
+  });
+
+  try {
+    const response = await docClient.send(command);
+    return response.Item;
+  } catch (error) {
+    console.error("Error fetching game:", error);
+    return null;
   }
 }
