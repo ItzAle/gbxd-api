@@ -3,6 +3,7 @@ import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import slugify from "slugify";
 import { NextResponse } from "next/server";
 import { LRUCache } from "lru-cache";
+import { revalidatePath } from 'next/cache';
 
 // Configuración del rate limiting
 const rateLimit = new LRUCache({
@@ -91,6 +92,9 @@ export async function POST(req) {
     });
 
     await docClient.send(command);
+
+    // Revalidar la ruta de juegos
+    revalidatePath('/api/games')
 
     // Responder con un mensaje de éxito
     return NextResponse.json(

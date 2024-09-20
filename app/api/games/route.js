@@ -18,6 +18,7 @@ export async function GET(request) {
   try {
     const command = new ScanCommand({
       TableName: "games",
+      ConsistentRead: true,
     });
 
     const response = await docClient.send(command);
