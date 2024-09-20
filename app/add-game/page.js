@@ -16,12 +16,16 @@ import {
   Alert,
   useMediaQuery,
   Typography,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import Navbar from "../components/Navbar";
 import AddGameForm from "../components/AddGameForm/AddGameForm";
+import AddGameFormV2 from "../components/AddGameFormV2/AddGameFormV2";
 import GenrePlatformModals from "../components/GenrePlatformModals/GenrePlatformModals";
 import { genresList } from "../constants/genres";
-import { getAllPlatforms } from "../constants/platforms"; // Asegúrate de que la ruta de importación sea correcta
+import { getAllPlatforms } from "../constants/platforms";
+import Link from "next/link";
 
 const theme = createTheme({
   palette: {
@@ -94,6 +98,8 @@ const AddGame = () => {
   const [platformSearch, setPlatformSearch] = useState("");
   const platformsList = getAllPlatforms(); // Obtén la lista de plataformas
 
+  const [formVersion, setFormVersion] = useState("v1");
+
   useEffect(() => {
     if (!loading && !user) {
       router.push("/");
@@ -122,7 +128,7 @@ const AddGame = () => {
     const pattern = new RegExp(
       "^(https?:\\/\\/)?" +
         "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" +
-        "((\\d{1,3}\\.){3}\d{1,3}))" +
+        "((\\d{1,3}\\.){3}d{1,3}))" +
         "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" +
         "(\\?[;&a-z\\d%_.~+=-]*)?" +
         "(\\#[-a-z\\d_]*)?$",
@@ -181,10 +187,9 @@ const AddGame = () => {
         setSnackbarMessage("Game added successfully!");
         setSnackbarSeverity("success");
         setSnackbarOpen(true);
-        
-        // Forzar actualización de la lista de juegos
-        await fetch('/api/revalidate?path=/games');
-        
+
+        await fetch("/api/revalidate?path=/games");
+
         router.push("/games");
       } else {
         const result = await res.json();
@@ -211,6 +216,12 @@ const AddGame = () => {
         platform.toLowerCase().includes(platformSearch.toLowerCase())
       )
     : [];
+
+  const handleFormVersionChange = (event, newVersion) => {
+    if (newVersion !== null) {
+      setFormVersion(newVersion);
+    }
+  };
 
   if (loading) {
     return (
@@ -249,26 +260,64 @@ const AddGame = () => {
           }}
         >
           <Typography variant="body1" align="center">
-            Warning: After adding a game, wait approximately 2 minutes for it to
-            appear in the API.
+            Please note: Our API has limited resources, which may cause loading
+            errors. If you find this project useful, you can donate to help us{" "}
+            <Link
+              className="underline hover:text-blue-500"
+              href="/donate"
+              target="_blank"
+            >
+              here
+            </Link>
+            .
           </Typography>
+        </Box>
+
+        <Box sx={{ mb: 3 }}>
+          <ToggleButtonGroup
+            value={formVersion}
+            exclusive
+            onChange={handleFormVersionChange}
+            aria-label="form version"
+          >
+            <ToggleButton value="v1" aria-label="stepped form">
+              Stepped Form
+            </ToggleButton>
+            <ToggleButton value="v2" aria-label="single page form">
+              Single Page Form
+            </ToggleButton>
+          </ToggleButtonGroup>
         </Box>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <AddGameForm
-            formData={formData}
-            setFormData={setFormData}
-            handleSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-            errors={errors}
-            validateUrl={validateUrl}
-            setShowGenresModal={setShowGenresModal}
-            setShowPlatformsModal={setShowPlatformsModal}
-            isMobile={isMobile}
-          />
+          {formVersion === "v1" ? (
+            <AddGameForm
+              formData={formData}
+              setFormData={setFormData}
+              handleSubmit={handleSubmit}
+              isSubmitting={isSubmitting}
+              errors={errors}
+              validateUrl={validateUrl}
+              setShowGenresModal={setShowGenresModal}
+              setShowPlatformsModal={setShowPlatformsModal}
+              isMobile={isMobile}
+            />
+          ) : (
+            <AddGameFormV2
+              formData={formData}
+              setFormData={setFormData}
+              handleSubmit={handleSubmit}
+              isSubmitting={isSubmitting}
+              errors={errors}
+              validateUrl={validateUrl}
+              setShowGenresModal={setShowGenresModal}
+              setShowPlatformsModal={setShowPlatformsModal}
+              isMobile={isMobile}
+            />
+          )}
         </motion.div>
       </Container>
 

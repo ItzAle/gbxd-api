@@ -179,6 +179,17 @@ export default function Home() {
               Sign Up for API Access
             </Button>
           </Box>
+
+          <Box className="!py-8 !text-center">
+            <Button
+              variant="contained"
+              size="large"
+              href="/donate"
+              className="!bg-[#4CAF50] hover:!bg-[#45a049] !text-white !font-bold !py-3 !px-6 !rounded-full !ml-4"
+            >
+              Donate
+            </Button>
+          </Box>
         </Container>
       </div>
     </ThemeProvider>

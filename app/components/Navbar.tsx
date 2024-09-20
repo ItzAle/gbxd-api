@@ -48,6 +48,7 @@ export default function Navbar() {
     { title: "All Games", path: "/games" },
     { title: "API", path: "/api/games", target: "_blank" },
     { title: "Docs", path: "/docs", target: "_blank" },
+    { title: "Donate", path: "/donate" },
   ];
 
   const userOnlyItems = [{ title: "Add Game", path: "/add-game" }];
