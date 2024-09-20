@@ -257,7 +257,8 @@ const GamesList = () => {
   const fetchGames = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/games");
+      const timestamp = new Date().getTime();
+      const response = await fetch(`/api/games?t=${timestamp}`);
       if (!response.ok) {
         throw new Error(`Error al obtener juegos: ${response.statusText}`);
       }
