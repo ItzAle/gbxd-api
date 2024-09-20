@@ -19,6 +19,7 @@ import {
   Box,
   TextField,
   InputAdornment,
+  Button,
   Pagination,
   Select,
   MenuItem,
@@ -250,6 +251,7 @@ const GamesList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentSearchTerm, setCurrentSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [yearFilter, setYearFilter] = useState("all");
   const [genreFilter, setGenreFilter] = useState("all");
@@ -292,6 +294,7 @@ const GamesList = () => {
     const year = searchParams.get("year") || "all";
     const genre = searchParams.get("genre") || "all";
     setCurrentPage(page);
+    setCurrentSearchTerm(search);
     setSearchTerm(search);
     setYearFilter(year);
     setGenreFilter(genre);
@@ -302,7 +305,7 @@ const GamesList = () => {
     const filtered = games.filter((game) => {
       const nameMatch = game.name
         .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+        .includes(currentSearchTerm.toLowerCase());
       const yearMatch =
         yearFilter === "all" ||
         (yearFilter === "TBA" && game.releaseDate === "TBA") ||
@@ -321,7 +324,7 @@ const GamesList = () => {
     });
 
     setFilteredGames(sortedFiltered);
-  }, [games, searchTerm, yearFilter, genreFilter]);
+  }, [games, currentSearchTerm, yearFilter, genreFilter]);
 
   useEffect(() => {
     const startIndex = (currentPage - 1) * GAMES_PER_PAGE;
@@ -347,25 +350,28 @@ const GamesList = () => {
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
-    updateURL(value, searchTerm, yearFilter, genreFilter);
+    updateURL(value, currentSearchTerm, yearFilter, genreFilter);
     window.scrollTo(0, 0);
   };
 
-  const handleSearchChange = (e) => {
-    const newSearchTerm = e.target.value;
-    setSearchTerm(newSearchTerm);
+  const handleSearch = () => {
+    setCurrentSearchTerm(searchTerm);
     setCurrentPage(1);
-    updateURL(1, newSearchTerm, yearFilter, genreFilter);
+    updateURL(1, searchTerm, yearFilter, genreFilter);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   const handleYearFilterChange = (event) => {
     setYearFilter(event.target.value);
-    updateURL(1, searchTerm, event.target.value, genreFilter);
+    updateURL(1, currentSearchTerm, event.target.value, genreFilter);
   };
 
   const handleGenreFilterChange = (event) => {
     setGenreFilter(event.target.value);
-    updateURL(1, searchTerm, yearFilter, event.target.value);
+    updateURL(1, currentSearchTerm, yearFilter, event.target.value);
   };
 
   // Obtener años únicos de los juegos
@@ -390,6 +396,13 @@ const GamesList = () => {
       <CssBaseline />
       <Navbar />
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Alert
+          severity="error"
+          sx={{ mb: 4, backgroundColor: "#ff0000", color: "#ffffff" }}
+        >
+          Please note: Our API has limited resources, which may cause loading
+          errors. We are working to improve this. Thank you for your patience.
+        </Alert>
         <Box
           sx={{
             display: "flex",
@@ -405,12 +418,12 @@ const GamesList = () => {
             component="h1"
             sx={{ color: "primary.main", fontWeight: "bold" }}
           >
-            All Games
+            Games
           </Typography>
           <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
             <TextField
               variant="outlined"
-              placeholder="Search games..."
+              placeholder="Search..."
               value={searchTerm}
               onChange={handleSearchChange}
               InputProps={{
@@ -422,6 +435,9 @@ const GamesList = () => {
               }}
               sx={{ width: { xs: "100%", sm: "200px" } }}
             />
+            <Button variant="contained" color="primary" onClick={handleSearch}>
+              Search
+            </Button>
             <FormControl sx={{ minWidth: 120 }}>
               <InputLabel>Year</InputLabel>
               <Select
