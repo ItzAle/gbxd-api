@@ -1,76 +1,72 @@
 import { NextResponse } from "next/server";
-import { docClient } from "../../../lib/aws-config";
-import { PutCommand, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { supabase } from "../../../lib/supabase";
 import slugify from "slugify";
 
 export async function POST(request) {
   try {
-    const formData = await request.formData();
-    const file = formData.get("file");
+    let games;
 
-    if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    // Determinar si los datos vienen como un archivo o como JSON directo
+    const contentType = request.headers.get("content-type");
+    if (contentType && contentType.includes("multipart/form-data")) {
+      // Manejar subida de archivo
+      const formData = await request.formData();
+      const file = formData.get("file");
+      const fileContent = await file.text();
+      games = JSON.parse(fileContent);
+    } else {
+      // Manejar JSON directo
+      games = await request.json();
     }
 
-    const fileContent = await file.text();
-    const games = JSON.parse(fileContent);
+    if (!Array.isArray(games)) {
+      throw new Error("El JSON debe ser un array de juegos");
+    }
 
     let addedCount = 0;
     let updatedCount = 0;
     let errorCount = 0;
-    let errorDetails = [];
+    const errorDetails = [];
 
     for (const game of games) {
+      const slug = slugify(game.name, { lower: true, strict: true });
+
       try {
-        const slug = slugify(game.name, { lower: true, strict: true });
-
         // Verificar si el juego ya existe
-        const getCommand = new GetCommand({
-          TableName: "games",
-          Key: { slug },
-        });
+        let { data: existingGame, error: getError } = await supabase
+          .from('games')
+          .select('*')
+          .eq('slug', slug)
+          .single();
 
-        const existingGame = await docClient.send(getCommand);
+        if (getError && getError.code !== 'PGRST116') {
+          throw getError;
+        }
 
-        if (existingGame.Item) {
+        if (existingGame) {
           // El juego existe, actualizarlo
-          const updateCommand = new UpdateCommand({
-            TableName: "games",
-            Key: { slug },
-            UpdateExpression:
-              "set #name = :name, releaseDate = :releaseDate, description = :description, publisher = :publisher, developer = :developer, platforms = :platforms, genres = :genres, coverImageUrl = :coverImageUrl, addedBy = :addedBy, isNSFW = :isNSFW, storeLinks = :storeLinks",
-            ExpressionAttributeNames: {
-              "#name": "name",
-            },
-            ExpressionAttributeValues: {
-              ":name": game.name,
-              ":releaseDate": game.releaseDate,
-              ":description": game.description,
-              ":publisher": game.publisher,
-              ":developer": game.developer,
-              ":platforms": game.platforms,
-              ":genres": game.genres,
-              ":coverImageUrl": game.coverImageUrl,
-              ":addedBy": "JSON Upload (Update)",
-              ":isNSFW": game.isNSFW || false,
-              ":storeLinks": game.storeLinks || [],
-            },
-          });
+          const { error: updateError } = await supabase
+            .from('games')
+            .update({
+              ...existingGame,
+              ...game,
+              slug,
+            })
+            .eq('slug', slug);
 
-          await docClient.send(updateCommand);
+          if (updateError) throw updateError;
           updatedCount++;
         } else {
           // El juego no existe, añadirlo
-          const putCommand = new PutCommand({
-            TableName: "games",
-            Item: {
+          const { error: insertError } = await supabase
+            .from('games')
+            .insert({
               ...game,
               slug,
               addedBy: "JSON Upload",
-            },
-          });
+            });
 
-          await docClient.send(putCommand);
+          if (insertError) throw insertError;
           addedCount++;
         }
       } catch (error) {
@@ -87,6 +83,7 @@ export async function POST(request) {
       {
         message: `Imported ${addedCount} new games. Updated ${updatedCount} existing games. Errors occurred for ${errorCount} games.`,
         errorDetails: errorDetails,
+        previewGames: games,
       },
       { status: 200 }
     );

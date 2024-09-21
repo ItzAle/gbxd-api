@@ -26,6 +26,7 @@ import {
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import JsonUploader from "@/app/components/JsonUploader/JsonUploader";
 
 const BatchGamePreview = ({ game }) => (
   <Card sx={{ maxWidth: 345, m: 1 }}>
@@ -310,44 +311,7 @@ export default function AdminPage() {
           <Typography>Add Games in Batch</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <TextField
-            fullWidth
-            multiline
-            rows={10}
-            variant="outlined"
-            label="JSON de juegos"
-            value={batchGamesJson}
-            onChange={handleBatchJsonChange}
-            placeholder='[{"name": "Game 1", "description": "Description 1", "coverImageUrl": "https://example.com/image1.jpg"}, {"name": "Game 2", "description": "Description 2", "coverImageUrl": "https://example.com/image2.jpg"}]'
-            sx={{ mb: 2 }}
-          />
-          <Button
-            onClick={handleAddGamesBatch}
-            variant="contained"
-            color="primary"
-            fullWidth
-            disabled={isImporting}
-          >
-            {isImporting ? "Processing..." : "Process Batch Games"}
-          </Button>
-          {previewGames.length > 0 && (
-            <Box mt={2}>
-              <Typography variant="h6">Preview:</Typography>
-              <Grid container>
-                {previewGames.map((game, index) => (
-                  <Grid item key={index} xs={12} sm={6} md={4}>
-                    <BatchGamePreview game={game} />
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          )}
-          {batchResult && (
-            <Box mt={2}>
-              <Typography variant="h6">Batch processing result:</Typography>
-              <pre>{JSON.stringify(batchResult, null, 2)}</pre>
-            </Box>
-          )}
+          <JsonUploader />
         </AccordionDetails>
       </Accordion>
 
