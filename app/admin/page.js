@@ -14,10 +14,44 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Card,
+  CardContent,
+  CardMedia,
+  Grid,
+  IconButton,
 } from "@mui/material";
-import JsonUploader from "../components/JsonUploader/JsonUploader";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
-export default function AddRawgGame() {
+const BatchGamePreview = ({ game }) => (
+  <Card sx={{ maxWidth: 345, m: 1 }}>
+    <CardMedia
+      component="img"
+      height="140"
+      image={
+        game.coverImageUrl ||
+        "https://via.placeholder.com/140x140?text=No+Image"
+      }
+      alt={game.name}
+    />
+    <CardContent>
+      <Typography gutterBottom variant="h6" component="div">
+        {game.name}
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
+        {game.description
+          ? `${game.description.substring(0, 100)}...`
+          : "No description available"}
+      </Typography>
+    </CardContent>
+  </Card>
+);
+
+export default function AdminPage() {
   const [gameId, setGameId] = useState("");
   const [message, setMessage] = useState("");
   const [isImporting, setIsImporting] = useState(false);
@@ -27,26 +61,29 @@ export default function AddRawgGame() {
   const [pin, setPin] = useState("");
   const router = useRouter();
 
-  if (!user) {
-    router.push("/");
-  }
+  const [batchGamesJson, setBatchGamesJson] = useState("");
+  const [batchResult, setBatchResult] = useState(null);
+  const [previewGames, setPreviewGames] = useState([]);
 
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        router.push("/login");
+        router.push("/");
       } else if (user.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
-        setShowPinDialog(true);
+        router.push("/");
+      } else {
+        fetchGames();
       }
     }
   }, [user, loading, router]);
 
-  const handlePinSubmit = () => {
-    if (pin === process.env.NEXT_PUBLIC_ADMIN_PIN) {
-      setShowPinDialog(false);
-    } else {
-      alert("PIN incorrecto");
-      router.push("/");
+  const fetchGames = async () => {
+    try {
+      const response = await fetch("/api/games");
+      const data = await response.json();
+      setGames(data);
+    } catch (error) {
+      console.error("Error fetching games:", error);
     }
   };
 
@@ -68,6 +105,7 @@ export default function AddRawgGame() {
       if (response.ok) {
         setMessage(data.message);
         setGameId("");
+        fetchGames();
       } else {
         setMessage(data.error || "An error occurred");
       }
@@ -82,7 +120,7 @@ export default function AddRawgGame() {
     setProgress(0);
 
     try {
-      const totalPages = 5; // Importar 500 juegos (5 páginas de 100 juegos cada una)
+      const totalPages = 5;
       for (let page = 1; page <= totalPages; page++) {
         const response = await fetch("/api/import-popular-games", {
           method: "POST",
@@ -104,6 +142,7 @@ export default function AddRawgGame() {
 
         setProgress(Math.round((page / totalPages) * 100));
       }
+      fetchGames();
     } catch (error) {
       setMessage("Error: " + error.message);
     } finally {
@@ -111,21 +150,43 @@ export default function AddRawgGame() {
     }
   };
 
-  const handleUpdateGames = async () => {
+  const handleBatchJsonChange = (e) => {
+    const value = e.target.value;
+    setBatchGamesJson(value);
+    try {
+      const parsedGames = JSON.parse(value);
+      setPreviewGames(parsedGames);
+    } catch (error) {
+      console.error("Error parsing JSON:", error);
+      setPreviewGames([]);
+    }
+  };
+
+  const handleAddGamesBatch = async () => {
     setIsImporting(true);
     setMessage("");
+    setBatchResult(null);
 
     try {
-      const response = await fetch("/api/update-games", {
+      const response = await fetch("/api/add-games-batch", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: batchGamesJson,
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setMessage(data.message);
+        setBatchResult(data);
+        setBatchGamesJson("");
+        setPreviewGames([]);
+        fetchGames();
       } else {
-        throw new Error(data.error || "An error occurred while updating games");
+        throw new Error(
+          data.error || "An error occurred while adding games in batch"
+        );
       }
     } catch (error) {
       setMessage("Error: " + error.message);
@@ -134,38 +195,40 @@ export default function AddRawgGame() {
     }
   };
 
-  const handleImportTopRated = async () => {
-    setIsImporting(true);
-    setMessage("");
-    setProgress(0);
-
+  const handlePinSubmit = async () => {
     try {
-      const totalPages = 25; // Importar 1000 juegos (25 páginas de 40 juegos cada una)
-      for (let page = 1; page <= totalPages; page++) {
-        const response = await fetch("/api/import-popular-games", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ page, pageSize: 40 }),
-        });
+      const idToken = await user.getIdToken();
+      const response = await fetch("/api/verify-admin-pin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ pin, idToken }),
+      });
 
-        const data = await response.json();
+      const responseText = await response.text();
+      console.log("Full response:", responseText);
 
-        if (response.ok) {
-          setMessage((prev) => prev + data.message + "\n");
-        } else {
-          throw new Error(
-            data.error || "An error occurred while importing top rated games"
-          );
+      if (response.ok) {
+        try {
+          const data = JSON.parse(responseText);
+          if (data.success) {
+            setShowPinDialog(false);
+            fetchGames();
+          } else {
+            alert(data.error || "An error occurred while verifying the PIN");
+          }
+        } catch (parseError) {
+          console.error("Error parsing JSON:", parseError);
+          alert("Received invalid response from server");
         }
-
-        setProgress(Math.round((page / totalPages) * 100));
+      } else {
+        console.error("Error response:", response.status, responseText);
+        alert(`Error: ${response.status} - ${responseText}`);
       }
     } catch (error) {
-      setMessage("Error: " + error.message);
-    } finally {
-      setIsImporting(false);
+      console.error("Error verifying admin PIN:", error);
+      alert("An error occurred. Please check the console and try again.");
     }
   };
 
@@ -173,17 +236,14 @@ export default function AddRawgGame() {
     return <CircularProgress />;
   }
 
-  if (
-    !user ||
-    (user.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL && !showPinDialog)
-  ) {
+  if (!user || user.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
     return null;
   }
 
   if (showPinDialog) {
     return (
       <Dialog open={showPinDialog} onClose={() => {}}>
-        <DialogTitle>Ingrese el PIN de administrador</DialogTitle>
+        <DialogTitle>Enter Admin PIN</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
@@ -196,68 +256,110 @@ export default function AddRawgGame() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handlePinSubmit}>Verificar</Button>
+          <Button onClick={handlePinSubmit}>Verify</Button>
         </DialogActions>
       </Dialog>
     );
   }
 
   return (
-    <Box sx={{ maxWidth: 400, margin: "auto", mt: 4 }}>
+    <Box sx={{ maxWidth: 1200, margin: "auto", mt: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Add Game from RAWG
+        Admin Panel
       </Typography>
-      <form onSubmit={handleSubmit}>
-        <TextField
-          fullWidth
-          label="RAWG Game ID"
-          value={gameId}
-          onChange={(e) => setGameId(e.target.value)}
-          margin="normal"
-          required
-        />
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth
-          sx={{ mt: 2 }}
-        >
-          Add Game
-        </Button>
-      </form>
-      <Button
-        onClick={handleImportPopular}
-        variant="contained"
-        color="secondary"
-        fullWidth
-        sx={{ mt: 2 }}
-        disabled={isImporting}
-      >
-        {isImporting ? "Importing..." : "Import Popular Games"}
-      </Button>
-      <Button
-        onClick={handleUpdateGames}
-        variant="contained"
-        color="secondary"
-        fullWidth
-        sx={{ mt: 2 }}
-        disabled={isImporting}
-      >
-        Update Existing Games
-      </Button>
-      <Button
-        onClick={handleImportTopRated}
-        variant="contained"
-        color="secondary"
-        fullWidth
-        sx={{ mt: 2 }}
-        disabled={isImporting}
-      >
-        {isImporting ? "Importing..." : "Import Top Rated Games"}
-      </Button>
 
-      <JsonUploader />
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography>Add Single Game</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              label="Game ID"
+              value={gameId}
+              onChange={(e) => setGameId(e.target.value)}
+              margin="normal"
+            />
+            <Button type="submit" variant="contained" color="primary" fullWidth>
+              Add Game
+            </Button>
+          </form>
+        </AccordionDetails>
+      </Accordion>
+
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography>Import Popular Games</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Button
+            onClick={handleImportPopular}
+            variant="contained"
+            color="secondary"
+            fullWidth
+            disabled={isImporting}
+          >
+            {isImporting ? "Importing..." : "Import Popular Games"}
+          </Button>
+        </AccordionDetails>
+      </Accordion>
+
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography>Add Games in Batch</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <TextField
+            fullWidth
+            multiline
+            rows={10}
+            variant="outlined"
+            label="JSON de juegos"
+            value={batchGamesJson}
+            onChange={handleBatchJsonChange}
+            placeholder='[{"name": "Game 1", "description": "Description 1", "coverImageUrl": "https://example.com/image1.jpg"}, {"name": "Game 2", "description": "Description 2", "coverImageUrl": "https://example.com/image2.jpg"}]'
+            sx={{ mb: 2 }}
+          />
+          <Button
+            onClick={handleAddGamesBatch}
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={isImporting}
+          >
+            {isImporting ? "Processing..." : "Process Batch Games"}
+          </Button>
+          {previewGames.length > 0 && (
+            <Box mt={2}>
+              <Typography variant="h6">Preview:</Typography>
+              <Grid container>
+                {previewGames.map((game, index) => (
+                  <Grid item key={index} xs={12} sm={6} md={4}>
+                    <BatchGamePreview game={game} />
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
+          {batchResult && (
+            <Box mt={2}>
+              <Typography variant="h6">Batch processing result:</Typography>
+              <pre>{JSON.stringify(batchResult, null, 2)}</pre>
+            </Box>
+          )}
+        </AccordionDetails>
+      </Accordion>
+
+      <Button
+        onClick={() => router.push("/admin/manage-games")}
+        variant="contained"
+        color="primary"
+        fullWidth
+        sx={{ mt: 2 }}
+      >
+        Manage Games
+      </Button>
 
       {isImporting && (
         <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
