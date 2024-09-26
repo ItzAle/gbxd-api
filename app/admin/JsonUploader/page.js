@@ -1,4 +1,4 @@
-import JsonUploaderClient from '@/app/components/JsonUploaderClient';
+import JsonUploaderClient from "../../../components/JsonUploaderClient/JsonUploaderClient";
 
 export default function JsonUploaderPage() {
   return (
