@@ -118,3 +118,5 @@ const JsonUploader = () => {
     </Box>
   );
 };
+
+export default JsonUploader;
