@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "../../../../lib/supabase";
+import { checkAndIncrementApiUsage } from "../../../utils/apiKeyCheck";
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -18,13 +19,25 @@ export async function GET(request) {
   }
 
   try {
+    const apiKey =
+      request.headers.get("x-api-key") ||
+      request.nextUrl.searchParams.get("apiKey");
+
+    const apiCheckResult = await checkAndIncrementApiUsage(apiKey);
+    if (apiCheckResult.error) {
+      return NextResponse.json(
+        { error: apiCheckResult.error },
+        { status: apiCheckResult.status, headers }
+      );
+    }
+
     const today = new Date().toISOString().split("T")[0];
 
     let { data: upcomingGames, error } = await supabase
-      .from('games')
-      .select('*')
-      .gt('releaseDate', today)
-      .order('releaseDate', { ascending: true })
+      .from("games")
+      .select("*")
+      .gt("releaseDate", today)
+      .order("releaseDate", { ascending: true })
       .limit(limit);
 
     if (error) throw error;
@@ -42,7 +55,7 @@ export async function GET(request) {
   } catch (error) {
     console.error("Error fetching upcoming games:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal Server Error", details: error.message },
       { status: 500, headers }
     );
   }

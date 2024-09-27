@@ -1,6 +1,7 @@
 import { supabase } from "../../../../lib/supabase";
 import { NextResponse } from "next/server";
-import { revalidatePath } from 'next/cache';
+import { revalidatePath } from "next/cache";
+import { checkAndIncrementApiUsage } from "../../../utils/apiKeyCheck";
 
 export async function GET(request, { params }) {
   const headers = {
@@ -19,10 +20,17 @@ export async function GET(request, { params }) {
   console.log("Buscando juego con slug:", name);
 
   try {
+    const apiKey = request.headers.get("x-api-key") || request.nextUrl.searchParams.get("apiKey");
+    
+    const apiCheckResult = await checkAndIncrementApiUsage(apiKey);
+    if (apiCheckResult.error) {
+      return NextResponse.json({ error: apiCheckResult.error }, { status: apiCheckResult.status, headers });
+    }
+
     let { data: game, error } = await supabase
-      .from('games')
-      .select('*')
-      .eq('slug', decodeURIComponent(name))
+      .from("games")
+      .select("*")
+      .eq("slug", decodeURIComponent(name))
       .single();
 
     if (error) throw error;
@@ -65,9 +73,9 @@ export async function PUT(request, { params }) {
 
   try {
     const { data, error } = await supabase
-      .from('games')
+      .from("games")
       .update(updatedGame)
-      .eq('slug', name)
+      .eq("slug", name)
       .select();
 
     if (error) throw error;
@@ -103,25 +111,22 @@ export async function DELETE(request, { params }) {
   const { name } = params;
 
   try {
-    console.log('Attempting to delete game with slug:', name);
-    const { error } = await supabase
-      .from('games')
-      .delete()
-      .eq('slug', name);
+    console.log("Attempting to delete game with slug:", name);
+    const { error } = await supabase.from("games").delete().eq("slug", name);
 
     if (error) throw error;
 
-    console.log('Game deleted successfully');
+    console.log("Game deleted successfully");
 
     // Trigger Vercel redeploy
     if (process.env.VERCEL_DEPLOY_HOOK_URL) {
-      console.log('Triggering Vercel redeploy');
+      console.log("Triggering Vercel redeploy");
       await fetch(process.env.VERCEL_DEPLOY_HOOK_URL, {
-        method: 'POST',
+        method: "POST",
       });
-      console.log('Vercel redeploy triggered');
+      console.log("Vercel redeploy triggered");
     } else {
-      console.log('VERCEL_DEPLOY_HOOK_URL not found in environment variables');
+      console.log("VERCEL_DEPLOY_HOOK_URL not found in environment variables");
     }
 
     return NextResponse.json(

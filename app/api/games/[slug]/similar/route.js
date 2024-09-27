@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "../../../../../lib/supabase";
+import { checkAndIncrementApiUsage } from "../../../../utils/apiKeyCheck";
 
 export async function GET(request, { params }) {
   const { slug } = params;
@@ -17,11 +18,23 @@ export async function GET(request, { params }) {
   }
 
   try {
+    const apiKey =
+      request.headers.get("x-api-key") ||
+      request.nextUrl.searchParams.get("apiKey");
+
+    const apiCheckResult = await checkAndIncrementApiUsage(apiKey);
+    if (apiCheckResult.error) {
+      return NextResponse.json(
+        { error: apiCheckResult.error },
+        { status: apiCheckResult.status, headers }
+      );
+    }
+
     // Primero, obtenemos el juego por su slug
     let { data: game, error } = await supabase
-      .from('games')
-      .select('*')
-      .eq('slug', slug)
+      .from("games")
+      .select("*")
+      .eq("slug", slug)
       .single();
 
     if (error) throw error;
@@ -37,10 +50,10 @@ export async function GET(request, { params }) {
 
     // Ahora buscamos juegos similares
     let { data: similarGames, error: similarError } = await supabase
-      .from('games')
-      .select('*')
-      .neq('slug', game.slug)
-      .contains('genres', game.genres)
+      .from("games")
+      .select("*")
+      .neq("slug", game.slug)
+      .contains("genres", game.genres)
       .limit(10);
 
     if (similarError) throw similarError;

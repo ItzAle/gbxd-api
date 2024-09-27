@@ -1,6 +1,6 @@
-import { docClient } from "../../../../../lib/aws-config";
-import { ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { NextResponse } from "next/server";
+import { supabase } from "../../../../../lib/supabase";
+import { checkAndIncrementApiUsage } from "../../../../utils/apiKeyCheck";
 
 export async function GET(request, { params }) {
   const { name } = params;
@@ -19,34 +19,38 @@ export async function GET(request, { params }) {
   }
 
   try {
-    const command = new ScanCommand({
-      TableName: "games",
-      FilterExpression: "contains(publisher, :publisherName)",
-      ExpressionAttributeValues: {
-        ":publisherName": decodedName,
-      },
-    });
+    const apiKey =
+      request.headers.get("x-api-key") ||
+      request.nextUrl.searchParams.get("apiKey");
 
-    console.log("DynamoDB command:", JSON.stringify(command, null, 2));
+    const apiCheckResult = await checkAndIncrementApiUsage(apiKey);
+    if (apiCheckResult.error) {
+      return NextResponse.json(
+        { error: apiCheckResult.error },
+        { status: apiCheckResult.status, headers }
+      );
+    }
 
-    const response = await docClient.send(command);
-    console.log("DynamoDB response:", JSON.stringify(response, null, 2));
+    // Consulta Supabase en lugar de DynamoDB
+    const { data: games, error } = await supabase
+      .from("games")
+      .select("*")
+      .ilike("publisher", `%${decodedName}%`);
 
-    const games = response.Items;
+    if (error) throw error;
 
     if (games.length === 0) {
       return NextResponse.json(
-        { message: "No games found for this publisher" },
+        { message: "No se encontraron juegos para este editor" },
         { status: 404, headers }
       );
     }
 
     return NextResponse.json(games, { status: 200, headers });
   } catch (error) {
+    console.error("Error:", error);
     return NextResponse.json(
-      {
-        error: "Internal Server Error",
-      },
+      { error: "Internal Server Error", details: error.message },
       { status: 500, headers }
     );
   }

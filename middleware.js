@@ -21,7 +21,8 @@ export async function middleware(request) {
     path.startsWith("/donate") ||
     path.startsWith("/home") ||
     path.startsWith("/profile") ||
-    path.startsWith("/api/add-game")
+    path.startsWith("/api/add-game") ||
+    path.startsWith("/games")
   ) {
     console.log(
       "Acceso a la ruta raíz o página de detalle de juego, permitiendo sin API key"

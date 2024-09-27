@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { supabase } from "../../../lib/supabase";
+import { checkAndIncrementApiUsage } from "../../utils/apiKeyCheck";
 
-export async function GET() {
+export async function GET(req) {
   const headers = {
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Origin": "*",
@@ -14,8 +15,18 @@ export async function GET() {
   };
 
   try {
-    console.log("Iniciando consulta a Supabase...");
+    const apiKey =
+      req.headers.get("x-api-key") || req.nextUrl.searchParams.get("apiKey");
 
+    const apiCheckResult = await checkAndIncrementApiUsage(apiKey);
+    if (apiCheckResult.error) {
+      return NextResponse.json(
+        { error: apiCheckResult.error },
+        { status: apiCheckResult.status, headers }
+      );
+    }
+
+    // Realizar la consulta de juegos
     let { data: games, error } = await supabase.from("games").select("*");
 
     if (error) {

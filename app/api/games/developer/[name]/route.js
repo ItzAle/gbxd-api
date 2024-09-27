@@ -1,6 +1,6 @@
-import { docClient } from "../../../../../lib/aws-config";
-import { ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { NextResponse } from "next/server";
+import { supabase } from "../../../lib/supabase";
+import { checkAndIncrementApiUsage } from "../../../../utils/apiKeyCheck";
 
 export async function GET(request, { params }) {
   const { name } = params;
@@ -13,26 +13,32 @@ export async function GET(request, { params }) {
       "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
   };
 
-  if (request.method === "OPTIONS") {
-    return new Response(null, { status: 200, headers });
-  }
-
   try {
-    const command = new ScanCommand({
-      TableName: "games",
-      FilterExpression: "contains(developer, :developer)",
-      ExpressionAttributeValues: {
-        ":developer": decodeURIComponent(name),
-      },
-    });
+    const apiKey =
+      request.headers.get("x-api-key") ||
+      request.nextUrl.searchParams.get("apiKey");
 
-    const response = await docClient.send(command);
-    const games = response.Items;
+    const apiCheckResult = await checkAndIncrementApiUsage(apiKey);
+    if (apiCheckResult.error) {
+      return NextResponse.json(
+        { error: apiCheckResult.error },
+        { status: apiCheckResult.status, headers }
+      );
+    }
+
+    // Consulta Supabase en lugar de DynamoDB
+    const { data: games, error } = await supabase
+      .from('games')
+      .select('*')
+      .ilike('developer', `%${decodeURIComponent(name)}%`);
+
+    if (error) throw error;
 
     return NextResponse.json(games, { status: 200, headers });
   } catch (error) {
+    console.error("Error:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal Server Error", details: error.message },
       { status: 500, headers }
     );
   }

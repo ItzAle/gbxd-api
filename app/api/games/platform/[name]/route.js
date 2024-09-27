@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "../../../../../lib/supabase";
+import { checkAndIncrementApiUsage } from "../../../../utils/apiKeyCheck";
 
 const platformAliases = {
   PS5: "PlayStation 5",
@@ -42,11 +43,19 @@ export async function GET(request, { params }) {
       "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
   };
 
-  if (request.method === "OPTIONS") {
-    return new Response(null, { status: 200, headers });
-  }
-
   try {
+    const apiKey =
+      request.headers.get("x-api-key") ||
+      request.nextUrl.searchParams.get("apiKey");
+
+    const apiCheckResult = await checkAndIncrementApiUsage(apiKey);
+    if (apiCheckResult.error) {
+      return NextResponse.json(
+        { error: apiCheckResult.error },
+        { status: apiCheckResult.status, headers }
+      );
+    }
+
     console.log("Buscando juegos para la plataforma:", platformName);
 
     // Usamos la función jsonb_array_elements para buscar en el array JSON

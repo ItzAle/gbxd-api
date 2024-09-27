@@ -1,11 +1,8 @@
-import { docClient } from "../../../../lib/aws-config";
-import { ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { NextResponse } from "next/server";
+import { supabase } from "../../../lib/supabase";
+import { checkAndIncrementApiUsage } from "../../../utils/apiKeyCheck";
 
-export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const limit = parseInt(searchParams.get("limit")) || 10;
-
+export async function GET(req) {
   const headers = {
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Origin": "*",
@@ -14,36 +11,35 @@ export async function GET(request) {
       "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
   };
 
-  if (request.method === "OPTIONS") {
-    return new Response(null, { status: 200, headers });
-  }
-
   try {
-    const command = new ScanCommand({
-      TableName: "games",
-      ProjectionExpression: "id, #name, releaseDate, coverImageUrl, slug",
-      ExpressionAttributeNames: {
-        "#name": "name",
-      },
-    });
+    const apiKey =
+      req.headers.get("x-api-key") || req.nextUrl.searchParams.get("apiKey");
 
-    console.log("DynamoDB command:", JSON.stringify(command, null, 2));
+    const apiCheckResult = await checkAndIncrementApiUsage(apiKey);
+    if (apiCheckResult.error) {
+      return NextResponse.json(
+        { error: apiCheckResult.error },
+        { status: apiCheckResult.status, headers }
+      );
+    }
 
-    const response = await docClient.send(command);
-    console.log("DynamoDB response:", JSON.stringify(response, null, 2));
+    const { searchParams } = new URL(req.url);
+    const limit = parseInt(searchParams.get("limit")) || 10;
 
-    const games = response.Items;
+    // Consulta Supabase en lugar de DynamoDB
+    const { data: games, error } = await supabase
+      .from("games")
+      .select("id, name, releaseDate, coverImageUrl, slug")
+      .order("releaseDate", { ascending: false })
+      .limit(limit);
 
-    games.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+    if (error) throw error;
 
-    const latestGames = games.slice(0, limit);
-
-    return NextResponse.json(latestGames, { status: 200, headers });
+    return NextResponse.json(games, { status: 200, headers });
   } catch (error) {
+    console.error("Error:", error);
     return NextResponse.json(
-      {
-        error: "Internal Server Error",
-      },
+      { error: "Internal Server Error", details: error.message },
       { status: 500, headers }
     );
   }
