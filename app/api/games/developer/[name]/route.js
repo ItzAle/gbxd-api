@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "../../../../../lib/supabase";
 import { checkAndIncrementApiUsage } from "../../../../utils/apiKeyCheck";
 
 export async function GET(request, { params }) {
@@ -28,9 +28,9 @@ export async function GET(request, { params }) {
 
     // Consulta Supabase en lugar de DynamoDB
     const { data: games, error } = await supabase
-      .from('games')
-      .select('*')
-      .ilike('developer', `%${decodeURIComponent(name)}%`);
+      .from("games")
+      .select("*")
+      .ilike("developer", `%${decodeURIComponent(name)}%`);
 
     if (error) throw error;
 
