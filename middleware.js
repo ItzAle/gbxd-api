@@ -14,8 +14,6 @@ export async function middleware(request) {
 
   console.log("Middleware ejecutándose para la ruta:", path);
   console.log("Host:", host);
-  console.log("ALLOWED_DOMAINS:", ALLOWED_DOMAINS);
-  console.log("PUBLIC_PATHS:", PUBLIC_PATHS);
 
   // Permitir localhost para desarrollo
   if (process.env.NODE_ENV === "development" && (host.includes("localhost") || host.includes("127.0.0.1"))) {
@@ -23,60 +21,42 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // Extraer el dominio base del host
-  const baseDomain = host.split(":")[0];
+  // Manejar solicitudes a api.gameboxd.me
+  if (host === "api.gameboxd.me") {
+    // Verificar si la ruta es pública
+    if (PUBLIC_PATHS.some(publicPath => path.startsWith(publicPath))) {
+      console.log("Ruta pública de API, permitiendo acceso sin API key");
+      return NextResponse.next();
+    }
 
-  // Verificar si el dominio base está permitido
-  const isDomainAllowed = ALLOWED_DOMAINS.some(domain => {
-    const isAllowed = baseDomain === domain || baseDomain.endsWith(`.${domain}`);
-    console.log(`Comprobando dominio: ${baseDomain} contra ${domain}. Permitido: ${isAllowed}`);
-    return isAllowed;
-  });
+    // Para rutas no públicas, requerir API key
+    const apiKey = request.headers.get("x-api-key") || 
+                   request.nextUrl.searchParams.get("apiKey") || 
+                   request.nextUrl.searchParams.get("apikey");
 
-  if (!isDomainAllowed) {
-    console.log("Dominio no permitido:", baseDomain);
+    if (!apiKey) {
+      console.log("No se proporcionó API key, devolviendo error 401");
+      return new NextResponse(JSON.stringify({ error: "API key is required" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Aquí iría la lógica para verificar la validez de la API key
+    console.log("API key proporcionada, procediendo con la verificación");
+    return NextResponse.next();
+  }
+
+  // Para otros dominios, verificar si están permitidos
+  if (!ALLOWED_DOMAINS.some(domain => host.endsWith(domain))) {
+    console.log("Dominio no permitido:", host);
     return new NextResponse(JSON.stringify({ error: "Dominio no autorizado" }), {
       status: 403,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  // Verificar si la ruta es pública
-  if (PUBLIC_PATHS.some(publicPath => path.startsWith(publicPath))) {
-    console.log("Ruta pública, permitiendo acceso sin API key");
-    return NextResponse.next();
-  }
-
-  // Rutas específicas que no requieren API key
-  if (
-    path === "/" ||
-    path.startsWith("/game/") ||
-    path.startsWith("/docs") ||
-    path.startsWith("/donate") ||
-    path.startsWith("/home") ||
-    path.startsWith("/profile") ||
-    path.startsWith("/api/add-game") ||
-    path.startsWith("/games")
-  ) {
-    console.log("Ruta específica permitida sin API key");
-    return NextResponse.next();
-  }
-
-  // Para todas las demás rutas, verificar la API key
-  console.log("Requiriendo API key");
-  const apiKey = request.headers.get("x-api-key") || request.nextUrl.searchParams.get("apiKey");
-
-  if (!apiKey) {
-    console.log("No se proporcionó API key, devolviendo error 401");
-    return new NextResponse(JSON.stringify({ error: "API key is required" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  // Aquí iría la lógica para verificar la validez de la API key
-  console.log("API key proporcionada, procediendo con la verificación");
-
+  // Permitir acceso a rutas no-API en dominios permitidos
   return NextResponse.next();
 }
 
