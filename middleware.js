@@ -10,8 +10,19 @@ const PUBLIC_PATHS = process.env.PUBLIC_PATHS
 
 export async function middleware(request) {
   const path = request.nextUrl.pathname;
+  const host = request.headers.get("host");
 
   console.log("Middleware ejecutándose para la ruta:", path);
+  console.log("Host:", host);
+
+  // Verificar si el dominio está permitido
+  if (!ALLOWED_DOMAINS.includes(host)) {
+    console.log("Dominio no permitido:", host);
+    return new NextResponse(JSON.stringify({ error: "Dominio no autorizado" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   // Permitir acceso a la ruta raíz y a las páginas de detalles de juegos sin API key
   if (
