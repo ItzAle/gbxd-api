@@ -65,6 +65,9 @@ export default function AdminPage() {
   const [batchGamesJson, setBatchGamesJson] = useState("");
   const [batchResult, setBatchResult] = useState(null);
   const [previewGames, setPreviewGames] = useState([]);
+  const [genres, setGenres] = useState([]);
+  const [platforms, setPlatforms] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (!loading) {
@@ -74,6 +77,7 @@ export default function AdminPage() {
         router.push("/");
       } else {
         fetchGames();
+        fetchGenresAndPlatforms();
       }
     }
   }, [user, loading, router]);
@@ -85,6 +89,24 @@ export default function AdminPage() {
       setGames(data);
     } catch (error) {
       console.error("Error fetching games:", error);
+    }
+  };
+
+  const fetchGenresAndPlatforms = async () => {
+    try {
+      const genresResponse = await fetch("/api/genres");
+      const platformsResponse = await fetch("/api/platforms");
+      
+      if (genresResponse.ok && platformsResponse.ok) {
+        const genresData = await genresResponse.json();
+        const platformsData = await platformsResponse.json();
+        setGenres(genresData);
+        setPlatforms(platformsData);
+      } else {
+        console.error("Error fetching genres or platforms");
+      }
+    } catch (error) {
+      console.error("Error fetching genres and platforms:", error);
     }
   };
 
@@ -155,44 +177,51 @@ export default function AdminPage() {
     const value = e.target.value;
     setBatchGamesJson(value);
     try {
-      const parsedGames = JSON.parse(value);
-      setPreviewGames(parsedGames);
+      const parsedGames = JSON.parse(value || '[]');
+      setPreviewGames(Array.isArray(parsedGames) ? parsedGames : [parsedGames]);
     } catch (error) {
       console.error("Error parsing JSON:", error);
       setPreviewGames([]);
     }
   };
 
-  const handleAddGamesBatch = async () => {
-    setIsImporting(true);
-    setMessage("");
-    setBatchResult(null);
+  const handlePreviewUpdate = (updatedGame) => {
+    const updatedGames = previewGames.map(game => 
+      game.name === updatedGame.name ? { ...game, ...updatedGame } : game
+    );
+    setPreviewGames(updatedGames);
+    setBatchGamesJson(JSON.stringify(updatedGames, null, 2));
+  };
 
+  const handleUploadBatchGames = async () => {
+    setUploading(true);
     try {
-      const response = await fetch("/api/add-games-batch", {
-        method: "POST",
+      const response = await fetch('/api/add-games-batch', {  // Cambiado aquí
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        body: batchGamesJson,
+        body: batchGamesJson,  // Asumiendo que batchGamesJson ya es una cadena JSON válida
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setBatchResult(data);
-        setBatchGamesJson("");
-        setPreviewGames([]);
-        fetchGames();
-      } else {
-        throw new Error(
-          data.error || "An error occurred while adding games in batch"
-        );
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al subir los juegos');
       }
+
+      const result = await response.json();
+      console.log('Juegos subidos exitosamente:', result);
+
+      // Actualizar la lista de juegos después de la subida
+      await fetchGames();
+
+      setBatchGamesJson('');
+      setPreviewGames([]);
     } catch (error) {
-      setMessage("Error: " + error.message);
+      console.error('Error al subir los juegos:', error);
+      // Aquí podrías mostrar un mensaje de error al usuario
     } finally {
-      setIsImporting(false);
+      setUploading(false);
     }
   };
 
@@ -311,7 +340,14 @@ export default function AdminPage() {
           <Typography>Add Games in Batch</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <JsonUploader />
+          <JsonUploader
+            initialJson={batchGamesJson}
+            onJsonChange={handleBatchJsonChange}
+            onPreviewUpdate={handlePreviewUpdate}
+            onUpload={handleUploadBatchGames}
+            genres={genres}
+            platforms={platforms}
+          />
         </AccordionDetails>
       </Accordion>
 
@@ -340,6 +376,12 @@ export default function AdminPage() {
         >
           {message}
         </Typography>
+      )}
+
+      {uploading && (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+          <CircularProgress />
+        </Box>
       )}
     </Box>
   );

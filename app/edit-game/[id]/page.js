@@ -33,6 +33,8 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import Image from "next/image";
 import AliasesFranchisesForm from "@/app/components/AliasesFranchisesForm/AliasesFranchisesForm";
+import HashtagsForm from "@/app/components/HashtagsForm/HashtagsForm";
+import ImagesVideosForm from "@/app/components/ImagesVideosForm/ImagesVideosForm";
 
 const EditGame = () => {
   const { id } = useParams();
@@ -73,6 +75,9 @@ const EditGame = () => {
           franchises: gameData.franchises || [""],
           genres: gameData.genres || [],
           platforms: gameData.platforms || [],
+          hashtags: gameData.hashtags || [],
+          images: gameData.images || [],
+          videos: gameData.videos || [],
         });
         setImagePreview(gameData.coverImageUrl);
       } catch (err) {
@@ -84,7 +89,6 @@ const EditGame = () => {
 
     fetchGame();
   }, [id]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -103,6 +107,9 @@ const EditGame = () => {
           franchises: game.franchises.filter(
             (franchise) => franchise.trim() !== ""
           ),
+          hashtags: game.hashtags,
+          images: game.images,
+          videos: game.videos,
         }),
       });
 
@@ -288,6 +295,18 @@ const EditGame = () => {
               setFranchises={(newFranchises) =>
                 setGame({ ...game, franchises: newFranchises })
               }
+            />
+            <HashtagsForm
+              hashtags={game.hashtags}
+              setHashtags={(newHashtags) =>
+                setGame({ ...game, hashtags: newHashtags })
+              }
+            />
+            <ImagesVideosForm
+              images={game.images}
+              setImages={(newImages) => setGame({ ...game, images: newImages })}
+              videos={game.videos}
+              setVideos={(newVideos) => setGame({ ...game, videos: newVideos })}
             />
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1">Géneros</Typography>

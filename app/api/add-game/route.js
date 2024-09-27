@@ -43,6 +43,9 @@ export async function POST(req) {
       storeLinks,
       aliases,
       franchises,
+      hashtags,
+      images,
+      videos,
     } = await req.json();
 
     if (
@@ -80,6 +83,9 @@ export async function POST(req) {
         storeLinks,
         aliases,
         franchises,
+        hashtags,
+        images,
+        videos,
       })
 
     if (error) throw error;

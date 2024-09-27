@@ -7,7 +7,7 @@ export async function PUT(request, { params }) {
     const updatedGame = await request.json();
 
     const { data, error } = await supabase
-      .from('games')
+      .from("games")
       .update({
         name: updatedGame.name,
         releaseDate: updatedGame.isTBA ? "TBA" : updatedGame.releaseDate,
@@ -21,8 +21,11 @@ export async function PUT(request, { params }) {
         aliases: updatedGame.aliases,
         franchises: updatedGame.franchises,
         isTBA: updatedGame.isTBA,
+        hashtags: updatedGame.hashtags,
+        images: updatedGame.images,
+        videos: updatedGame.videos,
       })
-      .eq('slug', id)
+      .eq("slug", id)
       .select()
       .single();
 

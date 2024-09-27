@@ -40,7 +40,13 @@ import Image from "next/image";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
+import { Tag, Image as ImageIcon, VideoLibrary } from "@mui/icons-material";
 import { motion } from "framer-motion";
+import ReactPlayer from "react-player/lazy";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import "@/app/styles/slick-theme.css";
 
 const theme = createTheme({
   palette: {
@@ -322,7 +328,6 @@ const GameDetail = () => {
                       Developer: {game.developer}
                     </Typography>
                   </Box>
-                  {/* Añadir iconos para Aliases y Franchises */}
                   {game.aliases && game.aliases.length > 0 && (
                     <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                       <Label
@@ -342,6 +347,29 @@ const GameDetail = () => {
                       />
                       <Typography variant="body1">
                         Franchises: {game.franchises.join(", ")}
+                      </Typography>
+                    </Box>
+                  )}
+                  {game.hashtags && game.hashtags.length > 0 && (
+                    <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                      <Tag
+                        fontSize="small"
+                        sx={{ mr: 1, color: "secondary.main" }}
+                      />
+                      <Typography variant="body1">
+                        Hashtags:{" "}
+                        {game.hashtags.map((hashtag) => (
+                          <Chip
+                            key={hashtag}
+                            label={hashtag}
+                            sx={{
+                              mr: 0.5,
+                              mb: 0.5,
+                              backgroundColor: "primary.main",
+                              color: "white",
+                            }}
+                          />
+                        ))}
                       </Typography>
                     </Box>
                   )}
@@ -379,6 +407,59 @@ const GameDetail = () => {
                 </Box>
               </Grid>
             </Grid>
+            {(game.images && game.images.length > 0) ||
+            (game.videos && game.videos.length > 0) ? (
+              <Box sx={{ mt: 4 }}>
+                <Typography variant="h6" sx={{ mb: 2, color: "primary.main" }}>
+                  <ImageIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                  Galería
+                </Typography>
+                <Slider
+                  dots={true}
+                  infinite={true}
+                  speed={500}
+                  slidesToShow={1}
+                  slidesToScroll={1}
+                  adaptiveHeight={true}
+                >
+                  {game.images &&
+                    game.images.map((image, index) => (
+                      <Box
+                        key={`image-${index}`}
+                        sx={{ height: 400, position: "relative" }}
+                      >
+                        <Image
+                          src={image.url}
+                          alt={image.description || `Imagen ${index + 1}`}
+                          layout="fill"
+                          objectFit="contain"
+                        />
+                      </Box>
+                    ))}
+                  {game.videos &&
+                    game.videos.map((video, index) => (
+                      <Box key={`video-${index}`} sx={{ height: 400 }}>
+                        <ReactPlayer
+                          url={video.url}
+                          width="100%"
+                          height="100%"
+                          controls={true}
+                          light={true}
+                          config={{
+                            youtube: {
+                              playerVars: {
+                                showinfo: 0,
+                                rel: 0,
+                                modestbranding: 1,
+                              },
+                            },
+                          }}
+                        />
+                      </Box>
+                    ))}
+                </Slider>
+              </Box>
+            ) : null}
             {game.link && (
               <Box sx={{ mt: 4 }}>
                 <motion.div

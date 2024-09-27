@@ -1,17 +1,12 @@
-import React from "react";
-import {
-  Typography,
-  Box,
-  Button,
-  Paper,
-  Grid,
-  Alert,
-} from "@mui/material";
+import React, { useState } from "react";
+import { Typography, Box, Button, Paper, Grid, Alert } from "@mui/material";
 import BasicInfoForm from "../BasicInfoForm";
 import GenrePlatformSelector from "../GenrePlatformSelector";
 import StoreLinksForm from "../StoreLinksForm";
 import DescriptionForm from "../DescriptionForm/DescriptionForm";
 import AliasesFranchisesForm from "../AliasesFranchisesForm/AliasesFranchisesForm";
+import HashtagsForm from "../HashtagsForm/HashtagsForm";
+import ImagesVideosForm from "../ImagesVideosForm/ImagesVideosForm";
 
 const AddGameFormV2 = ({
   formData,
@@ -24,6 +19,13 @@ const AddGameFormV2 = ({
   setShowPlatformsModal,
   isMobile,
 }) => {
+  const [formDataState, setFormDataState] = useState({
+    // ... otros campos ...
+    hashtags: [],
+    images: [],
+    videos: [],
+  });
+
   return (
     <form onSubmit={handleSubmit}>
       <Typography variant={isMobile ? "h4" : "h2"} gutterBottom>
@@ -55,13 +57,38 @@ const AddGameFormV2 = ({
           <Grid item xs={12}>
             <AliasesFranchisesForm
               aliases={formData.aliases}
-              setAliases={(newAliases) => setFormData({ ...formData, aliases: newAliases })}
+              setAliases={(newAliases) =>
+                setFormData({ ...formData, aliases: newAliases })
+              }
               franchises={formData.franchises}
-              setFranchises={(newFranchises) => setFormData({ ...formData, franchises: newFranchises })}
+              setFranchises={(newFranchises) =>
+                setFormData({ ...formData, franchises: newFranchises })
+              }
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <HashtagsForm
+              hashtags={formData.hashtags}
+              setHashtags={(newHashtags) =>
+                setFormData({ ...formData, hashtags: newHashtags })
+              }
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <ImagesVideosForm
+              images={formData.images}
+              setImages={(newImages) =>
+                setFormData({ ...formData, images: newImages })
+              }
+              videos={formData.videos}
+              setVideos={(newVideos) =>
+                setFormData({ ...formData, videos: newVideos })
+              }
             />
           </Grid>
         </Grid>
       </Paper>
+
       <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
         <Button
           type="submit"
