@@ -53,7 +53,11 @@ const EditGame = () => {
   useEffect(() => {
     const fetchGame = async () => {
       try {
-        const response = await fetch(`/api/game/${id}`);
+        const response = await fetch(`/api/game/${id}`, {
+          headers: {
+            "x-api-key": process.env.NEXT_PUBLIC_API_KEY,
+          },
+        });
         if (!response.ok) {
           throw new Error("Juego no encontrado");
         }
@@ -96,6 +100,7 @@ const EditGame = () => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY,
         },
         body: JSON.stringify({
           ...game,
