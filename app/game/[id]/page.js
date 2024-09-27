@@ -99,6 +99,10 @@ const GameDetail = () => {
     try {
       setError(null);
       const response = await fetch(`/api/game/${id}`, {
+        headers: {
+          "x-api-key":
+            "f30ff0a723637801ce39526ae5b37f1f48fcf8fc979ea2071192db2e04727faf",
+        },
         method: "DELETE",
       });
 
@@ -124,7 +128,12 @@ const GameDetail = () => {
   useEffect(() => {
     const fetchGame = async () => {
       try {
-        const response = await fetch(`/api/game/${id}`);
+        const response = await fetch(`/api/game/${id}`, {
+          headers: {
+            "x-api-key":
+              "f30ff0a723637801ce39526ae5b37f1f48fcf8fc979ea2071192db2e04727faf",
+          },
+        });
         if (!response.ok) {
           throw new Error("Game not found");
         }
