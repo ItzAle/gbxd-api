@@ -17,14 +17,8 @@ export async function middleware(request) {
   console.log("ALLOWED_DOMAINS:", ALLOWED_DOMAINS);
   console.log("PUBLIC_PATHS:", PUBLIC_PATHS);
 
-  // Permitir localhost para desarrollo
-  if (process.env.NODE_ENV === "development" && (host.includes("localhost") || host.includes("127.0.0.1"))) {
-    console.log("Acceso local permitido en desarrollo");
-    return NextResponse.next();
-  }
-
   // Manejar solicitudes a api.gameboxd.me o localhost en modo API
-  if (host === "api.gameboxd.me" || (process.env.NODE_ENV === "development" && path.startsWith("/api"))) {
+  if (host === "api.gameboxd.me" || path.startsWith("/api")) {
     console.log("Procesando solicitud para API");
 
     // Verificar si la ruta es pública
@@ -52,6 +46,17 @@ export async function middleware(request) {
 
     // Aquí iría la lógica para verificar la validez de la API key
     console.log("API key proporcionada, procediendo con la verificación");
+    
+    // Verificación simulada de la API key (reemplaza esto con tu lógica real)
+    if (apiKey !== "f30ff0a723637801ce39526ae5b37f1f48fcf8fc979ea2071192db2e04727faf") {
+      console.log("API key inválida");
+      return new NextResponse(JSON.stringify({ error: "Invalid API key" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    console.log("API key válida, permitiendo acceso");
     return NextResponse.next();
   }
 
