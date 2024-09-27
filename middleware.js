@@ -27,7 +27,13 @@ export async function middleware(request) {
   const baseDomain = host.split(":")[0];
 
   // Verificar si el dominio base está permitido
-  if (!ALLOWED_DOMAINS.some(domain => baseDomain.endsWith(domain))) {
+  const isDomainAllowed = ALLOWED_DOMAINS.some(domain => {
+    const isAllowed = baseDomain === domain || baseDomain.endsWith(`.${domain}`);
+    console.log(`Comprobando dominio: ${baseDomain} contra ${domain}. Permitido: ${isAllowed}`);
+    return isAllowed;
+  });
+
+  if (!isDomainAllowed) {
     console.log("Dominio no permitido:", baseDomain);
     return new NextResponse(JSON.stringify({ error: "Dominio no autorizado" }), {
       status: 403,
