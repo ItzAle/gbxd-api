@@ -29,7 +29,7 @@ export async function middleware(request) {
 
     // Para rutas no públicas, requerir API key
     const apiKeyHeader = request.headers.get("x-api-key");
-    const apiKeyQuery = request.nextUrl.searchParams.get("apiKey") || request.nextUrl.searchParams.get("apikey");
+    const apiKeyQuery = request.nextUrl.searchParams.get("apiKey") || request.nextUrl.searchParams.get("apikey") || request.nextUrl.searchParams.get("api_key");
     const apiKey = apiKeyHeader || apiKeyQuery;
 
     console.log("API Key del header:", apiKeyHeader);
