@@ -66,7 +66,11 @@ export default function ProfilePage() {
     setError(null);
     try {
       console.log("Fetching API key for user:", user.uid);
-      const response = await fetch(`/api/get-api-key?userId=${user.uid}`);
+      const response = await fetch(`/api/get-api-key?userId=${user.uid}`, {
+        headers: {
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY,
+        },
+      });
       const data = await response.json();
 
       console.log("Response status:", response.status);
