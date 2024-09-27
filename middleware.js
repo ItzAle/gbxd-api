@@ -14,6 +14,8 @@ export async function middleware(request) {
 
   console.log("Middleware ejecutándose para la ruta:", path);
   console.log("Host:", host);
+  console.log("ALLOWED_DOMAINS:", ALLOWED_DOMAINS);
+  console.log("PUBLIC_PATHS:", PUBLIC_PATHS);
 
   // Permitir localhost para desarrollo
   if (process.env.NODE_ENV === "development" && (host.includes("localhost") || host.includes("127.0.0.1"))) {
@@ -21,8 +23,10 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // Manejar solicitudes a api.gameboxd.me
-  if (host === "api.gameboxd.me") {
+  // Manejar solicitudes a api.gameboxd.me o localhost en modo API
+  if (host === "api.gameboxd.me" || (process.env.NODE_ENV === "development" && path.startsWith("/api"))) {
+    console.log("Procesando solicitud para API");
+
     // Verificar si la ruta es pública
     if (PUBLIC_PATHS.some(publicPath => path.startsWith(publicPath))) {
       console.log("Ruta pública de API, permitiendo acceso sin API key");
@@ -30,9 +34,13 @@ export async function middleware(request) {
     }
 
     // Para rutas no públicas, requerir API key
-    const apiKey = request.headers.get("x-api-key") || 
-                   request.nextUrl.searchParams.get("apiKey") || 
-                   request.nextUrl.searchParams.get("apikey");
+    const apiKeyHeader = request.headers.get("x-api-key");
+    const apiKeyQuery = request.nextUrl.searchParams.get("apiKey") || request.nextUrl.searchParams.get("apikey");
+    const apiKey = apiKeyHeader || apiKeyQuery;
+
+    console.log("API Key del header:", apiKeyHeader);
+    console.log("API Key de la query:", apiKeyQuery);
+    console.log("API Key final:", apiKey);
 
     if (!apiKey) {
       console.log("No se proporcionó API key, devolviendo error 401");
