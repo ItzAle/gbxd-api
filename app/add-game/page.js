@@ -18,6 +18,8 @@ import {
   Typography,
   ToggleButton,
   ToggleButtonGroup,
+  TextField,
+  Button,
 } from "@mui/material";
 import Navbar from "../components/Navbar";
 import AddGameForm from "../components/AddGameForm/AddGameForm";
@@ -26,6 +28,7 @@ import GenrePlatformModals from "../components/GenrePlatformModals/GenrePlatform
 import { genresList } from "../constants/genres";
 import { getAllPlatforms } from "../constants/platforms";
 import Link from "next/link";
+import RequestAccessForm from "../components/RequestAccessForm/RequestAccessForm";
 
 const theme = createTheme({
   palette: {
@@ -100,11 +103,137 @@ const AddGame = () => {
 
   const [formVersion, setFormVersion] = useState("v1");
 
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [checkingAuthorization, setCheckingAuthorization] = useState(true);
+
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const [hasPendingSubmission, setHasPendingSubmission] = useState(false);
+
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/");
+    const checkAuthorization = async () => {
+      if (user) {
+        try {
+          const response = await fetch(
+            `/api/check-authorization?email=${encodeURIComponent(user.email)}`,
+            {
+              headers: {
+                "x-api-key": process.env.NEXT_PUBLIC_API_KEY,
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Error al verificar la autorización");
+          }
+          const data = await response.json();
+          setIsAuthorized(data.isAuthorized);
+
+          // Verificar si el usuario tiene una solicitud pendiente
+          const pendingSubmission = localStorage.getItem(
+            "gameSubmissionPending"
+          );
+          if (pendingSubmission === "true") {
+            setHasPendingSubmission(true);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          setIsAuthorized(false);
+        } finally {
+          setCheckingAuthorization(false);
+        }
+      } else {
+        setCheckingAuthorization(false);
+      }
+    };
+
+    if (!loading) {
+      checkAuthorization();
     }
-  }, [user, loading, router]);
+  }, [user, loading]);
+
+  if (loading || checkingAuthorization) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      </ThemeProvider>
+    );
+  }
+
+  if (!user) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Navbar />
+        <Container maxWidth="md" sx={{ mt: 4, mb: 4, px: isMobile ? 2 : 3 }}>
+          <Box
+            sx={{
+              mb: 3,
+              backgroundColor: "error.main",
+              color: "error.contrastText",
+              p: 2,
+              borderRadius: 1,
+            }}
+          >
+            <Typography variant="body1" align="center">
+              Por favor, inicia sesión para acceder a esta página.
+            </Typography>
+          </Box>
+        </Container>
+      </ThemeProvider>
+    );
+  }
+
+  if (!isAuthorized) {
+    return <RequestAccessForm />;
+  }
+
+  if (hasPendingSubmission) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Navbar />
+        <Container maxWidth="md" sx={{ mt: 4, mb: 4, px: isMobile ? 2 : 3 }}>
+          <Box
+            sx={{
+              mb: 3,
+              backgroundColor: "info.main",
+              color: "info.contrastText",
+              p: 2,
+              borderRadius: 1,
+            }}
+          >
+            <Typography variant="h5" align="center" gutterBottom>
+              Solicitud en revisión
+            </Typography>
+            <Typography variant="body1" align="center">
+              Ya has enviado una solicitud para añadir un juego y está pendiente
+              de revisión. Por favor, espera a que se procese antes de enviar
+              otra solicitud.
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            onClick={() => router.push("/")}
+          >
+            Volver a la página principal
+          </Button>
+        </Container>
+      </ThemeProvider>
+    );
+  }
 
   const handleGenreSelection = (genre) => {
     setFormData((prev) => ({
@@ -128,7 +257,7 @@ const AddGame = () => {
     const pattern = new RegExp(
       "^(https?:\\/\\/)?" +
         "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" +
-        "((\\d{1,3}\\.){3}d{1,3}))" +
+        "((\\d{1,3}\\.){3}\\d{1,3}))" +
         "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" +
         "(\\?[;&a-z\\d%_.~+=-]*)?" +
         "(\\#[-a-z\\d_]*)?$",
@@ -165,14 +294,16 @@ const AddGame = () => {
       return;
     }
 
-    const formDataToSend = {
+    const { userId, ...formDataToSend } = {
       ...formData,
-      userId: user.uid,
       aliases: formData.aliases.filter((alias) => alias.trim() !== ""),
       franchises: formData.franchises.filter(
         (franchise) => franchise.trim() !== ""
       ),
     };
+    if (user && user.uid) {
+      formDataToSend.addedBy = user.uid;
+    }
 
     try {
       const res = await fetch("/api/add-game", {
@@ -184,13 +315,11 @@ const AddGame = () => {
       });
 
       if (res.ok) {
-        setSnackbarMessage("Game added successfully!");
-        setSnackbarSeverity("success");
-        setSnackbarOpen(true);
-
-        await fetch("/api/revalidate?path=/games");
-
-        router.push("/games");
+        localStorage.setItem("gameSubmissionPending", "true");
+        setShowSuccess(true);
+        setTimeout(() => {
+          router.push("/");
+        }, 2000);
       } else {
         const result = await res.json();
         setSnackbarMessage(result.error || "Error adding game");
@@ -222,28 +351,6 @@ const AddGame = () => {
       setFormVersion(newVersion);
     }
   };
-
-  if (loading) {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100vh",
-          }}
-        >
-          <CircularProgress />
-        </Box>
-      </ThemeProvider>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -359,6 +466,13 @@ const AddGame = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
+      <Snackbar
+        open={showSuccess}
+        autoHideDuration={2000}
+        message="Game added successfully! Redirecting..."
+        onClose={() => setShowSuccess(false)}
+      />
     </ThemeProvider>
   );
 };

@@ -46,7 +46,6 @@ export default function Navbar() {
   const navItems = [
     { title: "Home", path: user ? "/home" : "/" },
     { title: "All Games", path: "/games" },
-    { title: "API", path: "/api/games", target: "_blank" },
     { title: "Docs", path: "/docs", target: "_blank" },
     { title: "Donate", path: "/donate" },
   ];
@@ -134,14 +133,16 @@ export default function Navbar() {
               ))}
             {user ? (
               <Box sx={{ display: "flex", alignItems: "center", ml: 2 }}>
-                <Avatar
-                  src={user.photoURL || undefined}
-                  alt={user.displayName || "User avatar"}
-                  sx={{ width: 32, height: 32, mr: 1 }}
-                />
-                <Typography variant="body2" sx={{ mr: 2, color: "white" }}>
-                  {user.displayName || user.email}
-                </Typography>
+                <Link href="/profile">
+                  <Avatar
+                    src={user.photoURL || undefined}
+                    alt={user.displayName || "User avatar"}
+                    sx={{ width: 32, height: 32, mr: 1 }}
+                  />
+                  <Typography variant="body2" sx={{ mr: 2, color: "white" }}>
+                    {user.displayName || user.email}
+                  </Typography>
+                </Link>
                 <Button
                   variant="outlined"
                   color="secondary"

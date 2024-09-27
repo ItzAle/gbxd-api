@@ -1,6 +1,5 @@
-import { docClient } from "../../../../../lib/aws-config";
-import { ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { NextResponse } from "next/server";
+import { supabase } from "../../../../../lib/supabase"; // Asegúrate de que la ruta sea correcta
 
 export async function GET(request, { params }) {
   const { year } = params;
@@ -23,22 +22,22 @@ export async function GET(request, { params }) {
   }
 
   try {
-    const command = new ScanCommand({
-      TableName: "games",
-      FilterExpression: "begins_with(releaseDate, :year)",
-      ExpressionAttributeValues: {
-        ":year": year,
-      },
-    });
+    console.log("Iniciando consulta a Supabase para el año:", year);
 
-    console.log("DynamoDB command:", JSON.stringify(command, null, 2));
+    // Asumiendo que tienes una columna 'release_year' en tu tabla de juegos
+    const { data: games, error } = await supabase
+      .from("games")
+      .select("*")
+      .ilike("releaseDate", `%${year}%`);
 
-    const response = await docClient.send(command);
-    console.log("DynamoDB response:", JSON.stringify(response, null, 2));
+    if (error) {
+      console.error("Error de Supabase:", error);
+      throw error;
+    }
 
-    const games = response.Items;
+    console.log(`Fetched ${games ? games.length : 0} games for year ${year}`);
 
-    if (games.length === 0) {
+    if (!games || games.length === 0) {
       return NextResponse.json(
         { message: "No games found for this year" },
         { status: 404, headers }
@@ -47,8 +46,9 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(games, { status: 200, headers });
   } catch (error) {
+    console.error("Error processing request:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal Server Error", details: error.message },
       { status: 500, headers }
     );
   }

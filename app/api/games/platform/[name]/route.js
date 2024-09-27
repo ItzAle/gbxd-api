@@ -1,6 +1,5 @@
-import { docClient } from "../../../../../lib/aws-config";
-import { ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { NextResponse } from "next/server";
+import { supabase } from "../../../../../lib/supabase";
 
 const platformAliases = {
   PS5: "PlayStation 5",
@@ -33,7 +32,6 @@ const platformAliases = {
 export async function GET(request, { params }) {
   const { name } = params;
   const decodedName = decodeURIComponent(name).toUpperCase();
-
   const platformName = platformAliases[decodedName] || decodedName;
 
   const headers = {
@@ -49,34 +47,37 @@ export async function GET(request, { params }) {
   }
 
   try {
-    const command = new ScanCommand({
-      TableName: "games",
-      FilterExpression: "contains(platforms, :platformName)",
-      ExpressionAttributeValues: {
-        ":platformName": platformName,
-      },
-    });
+    console.log("Buscando juegos para la plataforma:", platformName);
 
-    console.log("DynamoDB command:", JSON.stringify(command, null, 2));
+    // Usamos la función jsonb_array_elements para buscar en el array JSON
+    const { data: games, error } = await supabase
+      .from("games")
+      .select("*")
+      .filter("platforms", "cs", `["${platformName}"]`);
 
-    const response = await docClient.send(command);
-    console.log("DynamoDB response:", JSON.stringify(response, null, 2));
+    if (error) {
+      console.error("Error de Supabase:", error);
+      throw error;
+    }
 
-    const games = response.Items;
+    console.log(
+      `Encontrados ${
+        games ? games.length : 0
+      } juegos para la plataforma ${platformName}`
+    );
 
-    if (games.length === 0) {
+    if (!games || games.length === 0) {
       return NextResponse.json(
-        { message: "No games found for this platform" },
+        { message: "No se encontraron juegos para esta plataforma" },
         { status: 404, headers }
       );
     }
 
     return NextResponse.json(games, { status: 200, headers });
   } catch (error) {
+    console.error("Error al procesar la solicitud:", error);
     return NextResponse.json(
-      {
-        error: "Internal Server Error",
-      },
+      { error: "Error interno del servidor", details: error.message },
       { status: 500, headers }
     );
   }

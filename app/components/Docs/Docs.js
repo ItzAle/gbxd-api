@@ -38,41 +38,6 @@ const theme = createTheme({
 
 const endpoints = [
   {
-    name: "Add Game",
-    method: "POST",
-    url: "/api/add-game",
-    description: "Adds a new game to the database. Requires authentication.",
-    authentication: "Bearer token required in the Authorization header.",
-    requestBody: `{
-  "name": "Game Name",
-  "releaseDate": "YYYY-MM-DD",
-  "description": "Detailed game description.",
-  "platforms": ["Platform1", "Platform2"],
-  "coverImage": "https://example.com/image.jpg",
-  "publisher": "Publisher Name",
-  "developer": "Developer Name",
-  "genres": ["Genre1", "Genre2"]
-}`,
-    response: `{
-  "id": "unique-document-id",
-  "name": "Game Name",
-  "releaseDate": "YYYY-MM-DD",
-  "description": "Detailed game description.",
-  "platforms": ["Platform1", "Platform2"],
-  "coverImage": "https://example.com/image.jpg",
-  "publisher": "Publisher Name",
-  "developer": "Developer Name",
-  "genres": ["Genre1", "Genre2"],
-  "createdAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
-  "updatedAt": "YYYY-MM-DDTHH:mm:ss.sssZ"
-}`,
-    errorResponses: [
-      { code: 400, description: "Invalid request body" },
-      { code: 401, description: "Unauthorized - Invalid or missing token" },
-      { code: 409, description: "Game already exists" },
-    ],
-  },
-  {
     name: "Get All Games",
     method: "GET",
     url: "/api/games",
@@ -93,15 +58,44 @@ const endpoints = [
     response: `{
   "games": [
     {
-      "id": "unique-document-id",
+      "id": 780,
+      "created_at": "2024-09-20T21:23:52.816637+00:00",
       "name": "Game Name",
-      "releaseDate": "YYYY-MM-DD",
+      "slug": "game-name",
+      "coverImageUrl": "https://example.com/image.jpg",
+      "addedBy": "USER_ID",
       "description": "Game description.",
+      "releaseDate": "2025-02-14",
       "platforms": ["Platform1", "Platform2"],
-      "coverImage": "https://example.com/image.jpg",
-      "publisher": "Publisher Name",
+      "genres": ["Genre1", "Genre2"],
       "developer": "Developer Name",
-      "genres": ["Genre1", "Genre2"]
+      "publisher": "Publisher Name",
+      "isNSFW": false,
+      "averageRating": null,
+      "storeLinks": {
+        "gog": "",
+        "xbox": "",
+        "steam": "",
+        "epicGames": "",
+        "playStation": "",
+        "nintendoSwitch": ""
+      },
+      "franchises": ["Franchise1"],
+      "aliases": ["Alias1"],
+      "isTBA": false,
+      "hashtags": ["hashtag1", "hashtag2"],
+      "images": [
+        {
+          "url": "https://example.com/image1.jpg",
+          "description": "Image description"
+        }
+      ],
+      "videos": [
+        {
+          "url": "https://youtube.com/watch?v=video_id",
+          "description": "Video description"
+        }
+      ]
     },
     // ... more games ...
   ],
@@ -117,18 +111,47 @@ const endpoints = [
   {
     name: "Get Game Details",
     method: "GET",
-    url: "/api/game/<game-id>",
+    url: "/api/game/<game-slug>",
     description: "Retrieves details of a specific game.",
     response: `{
-  "id": "unique-document-id",
+  "id": 780,
+  "created_at": "2024-09-20T21:23:52.816637+00:00",
   "name": "Game Name",
-  "releaseDate": "YYYY-MM-DD",
+  "slug": "game-name",
+  "coverImageUrl": "https://example.com/image.jpg",
+  "addedBy": "USER_ID",
   "description": "Detailed game description.",
+  "releaseDate": "2025-02-14",
   "platforms": ["Platform1", "Platform2"],
-  "coverImage": "https://example.com/image.jpg",
-  "publisher": "Publisher Name",
+  "genres": ["Genre1", "Genre2"],
   "developer": "Developer Name",
-  "genres": ["Genre1", "Genre2"]
+  "publisher": "Publisher Name",
+  "isNSFW": false,
+  "averageRating": null,
+  "storeLinks": {
+    "gog": "",
+    "xbox": "",
+    "steam": "",
+    "epicGames": "",
+    "playStation": "",
+    "nintendoSwitch": ""
+  },
+  "franchises": ["Franchise1"],
+  "aliases": ["Alias1"],
+  "isTBA": false,
+  "hashtags": ["hashtag1", "hashtag2"],
+  "images": [
+    {
+      "url": "https://example.com/image1.jpg",
+      "description": "Image description"
+    }
+  ],
+  "videos": [
+    {
+      "url": "https://youtube.com/watch?v=video_id",
+      "description": "Video description"
+    }
+  ]
 }`,
     errorResponses: [{ code: 404, description: "Game not found" }],
   },
@@ -140,21 +163,37 @@ const endpoints = [
     response: `{
   "games": [
     {
-      "id": "unique-document-id",
+      "id": 780,
+      "created_at": "2024-09-20T21:23:52.816637+00:00",
       "name": "Game Name",
       "slug": "game-name",
-      "releaseDate": "YYYY-MM-DD",
-      "description": "Brief game description.",
-      "platforms": ["Platform1", "Platform2"],
       "coverImageUrl": "https://example.com/image.jpg",
-      "publisher": "Publisher Name",
+      "addedBy": "USER_ID",
+      "description": "Brief game description.",
+      "releaseDate": "2025-02-14",
+      "platforms": ["Platform1", "Platform2"],
+      "genres": ["Genre1", "Genre2"],
       "developer": "Developer Name",
-      "genres": ["Genre1", "Genre2"]
+      "publisher": "Publisher Name",
+      "isNSFW": false,
+      "averageRating": null,
+      "storeLinks": {
+        "gog": "",
+        "xbox": "",
+        "steam": "",
+        "epicGames": "",
+        "playStation": "",
+        "nintendoSwitch": ""
+      },
+      "franchises": ["Franchise1"],
+      "aliases": ["Alias1"],
+      "isTBA": false,
+      "hashtags": ["hashtag1", "hashtag2"]
     },
     // ... more games ...
   ],
   "totalGames": 25,
-  "year": 2023
+  "year": 2025
 }`,
     errorResponses: [
       { code: 400, description: "Invalid year format" },
@@ -170,16 +209,32 @@ const endpoints = [
     response: `{
   "games": [
     {
-      "id": "unique-document-id",
+      "id": 780,
+      "created_at": "2024-09-20T21:23:52.816637+00:00",
       "name": "Game Name",
       "slug": "game-name",
-      "releaseDate": "YYYY-MM-DD",
-      "description": "Brief game description.",
-      "platforms": ["Platform1", "Platform2"],
       "coverImageUrl": "https://example.com/image.jpg",
-      "publisher": "Publisher Name",
+      "addedBy": "USER_ID",
+      "description": "Brief game description.",
+      "releaseDate": "2025-02-14",
+      "platforms": ["Platform1", "Platform2"],
+      "genres": ["Genre1", "Genre2"],
       "developer": "Developer Name",
-      "genres": ["Genre1", "Genre2"]
+      "publisher": "Publisher Name",
+      "isNSFW": false,
+      "averageRating": null,
+      "storeLinks": {
+        "gog": "",
+        "xbox": "",
+        "steam": "",
+        "epicGames": "",
+        "playStation": "",
+        "nintendoSwitch": ""
+      },
+      "franchises": ["Franchise1"],
+      "aliases": ["Alias1"],
+      "isTBA": false,
+      "hashtags": ["hashtag1", "hashtag2"]
     },
     // ... more games ...
   ],
@@ -199,16 +254,32 @@ const endpoints = [
     response: `{
   "similarGames": [
     {
-      "id": "unique-document-id",
+      "id": 780,
+      "created_at": "2024-09-20T21:23:52.816637+00:00",
       "name": "Similar Game Name",
       "slug": "similar-game-name",
-      "releaseDate": "YYYY-MM-DD",
-      "description": "Brief game description.",
-      "platforms": ["Platform1", "Platform2"],
       "coverImageUrl": "https://example.com/image.jpg",
-      "publisher": "Publisher Name",
+      "addedBy": "USER_ID",
+      "description": "Brief game description.",
+      "releaseDate": "2025-02-14",
+      "platforms": ["Platform1", "Platform2"],
+      "genres": ["Genre1", "Genre2"],
       "developer": "Developer Name",
-      "genres": ["Genre1", "Genre2"]
+      "publisher": "Publisher Name",
+      "isNSFW": false,
+      "averageRating": null,
+      "storeLinks": {
+        "gog": "",
+        "xbox": "",
+        "steam": "",
+        "epicGames": "",
+        "playStation": "",
+        "nintendoSwitch": ""
+      },
+      "franchises": ["Franchise1"],
+      "aliases": ["Alias1"],
+      "isTBA": false,
+      "hashtags": ["hashtag1", "hashtag2"]
     },
     // ... more similar games ...
   ],
@@ -237,16 +308,32 @@ const endpoints = [
     response: `{
   "upcomingGames": [
     {
-      "id": "unique-document-id",
+      "id": 780,
+      "created_at": "2024-09-20T21:23:52.816637+00:00",
       "name": "Upcoming Game Name",
       "slug": "upcoming-game-name",
-      "releaseDate": "YYYY-MM-DD",
-      "description": "Brief game description.",
-      "platforms": ["Platform1", "Platform2"],
       "coverImageUrl": "https://example.com/image.jpg",
-      "publisher": "Publisher Name",
+      "addedBy": "USER_ID",
+      "description": "Brief game description.",
+      "releaseDate": "2025-02-14",
+      "platforms": ["Platform1", "Platform2"],
+      "genres": ["Genre1", "Genre2"],
       "developer": "Developer Name",
-      "genres": ["Genre1", "Genre2"]
+      "publisher": "Publisher Name",
+      "isNSFW": false,
+      "averageRating": null,
+      "storeLinks": {
+        "gog": "",
+        "xbox": "",
+        "steam": "",
+        "epicGames": "",
+        "playStation": "",
+        "nintendoSwitch": ""
+      },
+      "franchises": ["Franchise1"],
+      "aliases": ["Alias1"],
+      "isTBA": true,
+      "hashtags": ["hashtag1", "hashtag2"]
     },
     // ... more upcoming games ...
   ],
@@ -324,7 +411,7 @@ export default function Docs() {
               style={vscDarkPlus}
               customStyle={{ borderRadius: "8px" }}
             >
-              {"http://gbxd-api.vercel.app/api/"}
+              {"https://api.gameboxd.me/api/"}
             </SyntaxHighlighter>
           </Paper>
 

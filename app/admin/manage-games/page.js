@@ -30,9 +30,9 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import SearchIcon from '@mui/icons-material/Search';
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import SearchIcon from "@mui/icons-material/Search";
 import { genresList } from "@/app/constants/genres";
 import { getAllPlatforms } from "@/app/constants/platforms";
 
@@ -64,7 +64,7 @@ export default function ManageGames() {
   }, [user, loading, router]);
 
   useEffect(() => {
-    const filtered = games.filter(game => 
+    const filtered = games.filter((game) =>
       game.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredGames(filtered);
@@ -73,7 +73,11 @@ export default function ManageGames() {
 
   const fetchGames = async () => {
     try {
-      const response = await fetch("/api/games");
+      const response = await fetch("/api/games", {
+        headers: {
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY,
+        },
+      });
       const data = await response.json();
       setGames(data);
       setFilteredGames(data);
@@ -97,7 +101,12 @@ export default function ManageGames() {
   const handleDeleteGame = async (gameId) => {
     if (window.confirm("Are you sure you want to delete this game?")) {
       try {
-        await fetch(`/api/games/${gameId}`, { method: "DELETE" });
+        await fetch(`/api/games/${gameId}`, {
+          method: "DELETE",
+          headers: {
+            "x-api-key": process.env.NEXT_PUBLIC_API_KEY,
+          },
+        });
         fetchGames();
       } catch (error) {
         console.error("Error deleting game:", error);
@@ -109,12 +118,17 @@ export default function ManageGames() {
     try {
       const updatedGame = {
         ...selectedGame,
-        aliases: selectedGame.aliases.filter(alias => alias.trim() !== ""),
-        franchises: selectedGame.franchises.filter(franchise => franchise.trim() !== ""),
+        aliases: selectedGame.aliases.filter((alias) => alias.trim() !== ""),
+        franchises: selectedGame.franchises.filter(
+          (franchise) => franchise.trim() !== ""
+        ),
       };
       await fetch(`/api/games/${updatedGame.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY,
+        },
         body: JSON.stringify(updatedGame),
       });
       setIsEditDialogOpen(false);
@@ -129,21 +143,21 @@ export default function ManageGames() {
   };
 
   const handleArrayChange = (field, index, value) => {
-    setSelectedGame(prevGame => ({
+    setSelectedGame((prevGame) => ({
       ...prevGame,
-      [field]: prevGame[field].map((item, i) => i === index ? value : item),
+      [field]: prevGame[field].map((item, i) => (i === index ? value : item)),
     }));
   };
 
   const handleAddArrayItem = (field) => {
-    setSelectedGame(prevGame => ({
+    setSelectedGame((prevGame) => ({
       ...prevGame,
       [field]: [...prevGame[field], ""],
     }));
   };
 
   const handleRemoveArrayItem = (field, index) => {
-    setSelectedGame(prevGame => ({
+    setSelectedGame((prevGame) => ({
       ...prevGame,
       [field]: prevGame[field].filter((_, i) => i !== index),
     }));
@@ -163,22 +177,22 @@ export default function ManageGames() {
 
   const handleGenreSelection = (genre) => {
     if (selectedGame) {
-      setSelectedGame(prevGame => ({
+      setSelectedGame((prevGame) => ({
         ...prevGame,
         genres: prevGame.genres.includes(genre)
-          ? prevGame.genres.filter(g => g !== genre)
-          : [...prevGame.genres, genre]
+          ? prevGame.genres.filter((g) => g !== genre)
+          : [...prevGame.genres, genre],
       }));
     }
   };
 
   const handlePlatformSelection = (platform) => {
     if (selectedGame) {
-      setSelectedGame(prevGame => ({
+      setSelectedGame((prevGame) => ({
         ...prevGame,
         platforms: prevGame.platforms.includes(platform)
-          ? prevGame.platforms.filter(p => p !== platform)
-          : [...prevGame.platforms, platform]
+          ? prevGame.platforms.filter((p) => p !== platform)
+          : [...prevGame.platforms, platform],
       }));
     }
   };
@@ -201,7 +215,7 @@ export default function ManageGames() {
       <Typography variant="h4" component="h1" gutterBottom>
         Manage Games
       </Typography>
-      
+
       <Box sx={{ mb: 2 }}>
         <TextField
           fullWidth
@@ -222,21 +236,32 @@ export default function ManageGames() {
       <Grid container spacing={2}>
         {paginatedGames.map((game) => (
           <Grid item xs={12} sm={6} md={4} key={game.id}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Card
+              sx={{ height: "100%", display: "flex", flexDirection: "column" }}
+            >
               <CardMedia
                 component="img"
                 height="140"
-                image={game.coverImageUrl || 'https://via.placeholder.com/140x140?text=No+Image'}
+                image={
+                  game.coverImageUrl ||
+                  "https://via.placeholder.com/140x140?text=No+Image"
+                }
                 alt={game.name}
               />
               <CardContent sx={{ flexGrow: 1 }}>
                 <Typography variant="h6" component="div" sx={{ mb: 1 }}>
                   {game.name}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  {game.description ? `${game.description.substring(0, 100)}...` : 'No description available'}
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  {game.description
+                    ? `${game.description.substring(0, 100)}...`
+                    : "No description available"}
                 </Typography>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                   <IconButton onClick={() => handleEditGame(game)}>
                     <EditIcon />
                   </IconButton>
@@ -250,7 +275,7 @@ export default function ManageGames() {
         ))}
       </Grid>
 
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
         <Pagination
           count={Math.ceil(filteredGames.length / GAMES_PER_PAGE)}
           page={currentPage}
@@ -259,78 +284,117 @@ export default function ManageGames() {
         />
       </Box>
 
-      <Dialog open={isEditDialogOpen} onClose={() => setIsEditDialogOpen(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>Edit Game</DialogTitle>
         <DialogContent>
           {selectedGame && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}
+            >
               <TextField
                 fullWidth
                 label="Name"
-                value={selectedGame.name || ''}
-                onChange={(e) => setSelectedGame({ ...selectedGame, name: e.target.value })}
+                value={selectedGame.name || ""}
+                onChange={(e) =>
+                  setSelectedGame({ ...selectedGame, name: e.target.value })
+                }
               />
               <TextField
                 fullWidth
                 label="Description"
-                value={selectedGame.description || ''}
-                onChange={(e) => setSelectedGame({ ...selectedGame, description: e.target.value })}
+                value={selectedGame.description || ""}
+                onChange={(e) =>
+                  setSelectedGame({
+                    ...selectedGame,
+                    description: e.target.value,
+                  })
+                }
                 multiline
                 rows={4}
               />
               <TextField
                 fullWidth
                 label="Cover Image URL"
-                value={selectedGame.coverImageUrl || ''}
-                onChange={(e) => setSelectedGame({ ...selectedGame, coverImageUrl: e.target.value })}
+                value={selectedGame.coverImageUrl || ""}
+                onChange={(e) =>
+                  setSelectedGame({
+                    ...selectedGame,
+                    coverImageUrl: e.target.value,
+                  })
+                }
               />
               <TextField
                 fullWidth
                 label="Release Date"
                 type="date"
-                value={selectedGame.releaseDate || ''}
-                onChange={(e) => setSelectedGame({ ...selectedGame, releaseDate: e.target.value })}
+                value={selectedGame.releaseDate || ""}
+                onChange={(e) =>
+                  setSelectedGame({
+                    ...selectedGame,
+                    releaseDate: e.target.value,
+                  })
+                }
                 InputLabelProps={{ shrink: true }}
               />
               <TextField
                 fullWidth
                 label="Developer"
-                value={selectedGame.developer || ''}
-                onChange={(e) => setSelectedGame({ ...selectedGame, developer: e.target.value })}
+                value={selectedGame.developer || ""}
+                onChange={(e) =>
+                  setSelectedGame({
+                    ...selectedGame,
+                    developer: e.target.value,
+                  })
+                }
               />
               <TextField
                 fullWidth
                 label="Publisher"
-                value={selectedGame.publisher || ''}
-                onChange={(e) => setSelectedGame({ ...selectedGame, publisher: e.target.value })}
+                value={selectedGame.publisher || ""}
+                onChange={(e) =>
+                  setSelectedGame({
+                    ...selectedGame,
+                    publisher: e.target.value,
+                  })
+                }
               />
               <FormControlLabel
                 control={
                   <Checkbox
                     checked={selectedGame.isNSFW || false}
-                    onChange={(e) => setSelectedGame({ ...selectedGame, isNSFW: e.target.checked })}
+                    onChange={(e) =>
+                      setSelectedGame({
+                        ...selectedGame,
+                        isNSFW: e.target.checked,
+                      })
+                    }
                   />
                 }
                 label="Is NSFW"
               />
               <Typography variant="subtitle1">Genres</Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                 {(selectedGame.genres || []).map((genre, index) => (
                   <Chip
                     key={index}
                     label={genre}
-                    onDelete={() => handleRemoveArrayItem('genres', index)}
+                    onDelete={() => handleRemoveArrayItem("genres", index)}
                   />
                 ))}
                 <Button onClick={handleOpenGenresModal}>Add Genre</Button>
               </Box>
               <Typography variant="subtitle1">Platforms</Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                 {(selectedGame.platforms || []).map((platform, index) => (
                   <Chip
                     key={index}
                     label={platform}
-                    onDelete={() => handleRemoveArrayItem('platforms', index)}
+                    onDelete={() => handleRemoveArrayItem("platforms", index)}
                   />
                 ))}
                 <Button onClick={handleOpenPlatformsModal}>Add Platform</Button>
@@ -341,11 +405,17 @@ export default function ManageGames() {
                   key={index}
                   fullWidth
                   value={alias}
-                  onChange={(e) => handleArrayChange('aliases', index, e.target.value)}
+                  onChange={(e) =>
+                    handleArrayChange("aliases", index, e.target.value)
+                  }
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton onClick={() => handleRemoveArrayItem('aliases', index)}>
+                        <IconButton
+                          onClick={() =>
+                            handleRemoveArrayItem("aliases", index)
+                          }
+                        >
                           <DeleteIcon />
                         </IconButton>
                       </InputAdornment>
@@ -353,18 +423,26 @@ export default function ManageGames() {
                   }}
                 />
               ))}
-              <Button onClick={() => handleAddArrayItem('aliases')}>Add Alias</Button>
+              <Button onClick={() => handleAddArrayItem("aliases")}>
+                Add Alias
+              </Button>
               <Typography variant="subtitle1">Franchises</Typography>
               {(selectedGame.franchises || []).map((franchise, index) => (
                 <TextField
                   key={index}
                   fullWidth
                   value={franchise}
-                  onChange={(e) => handleArrayChange('franchises', index, e.target.value)}
+                  onChange={(e) =>
+                    handleArrayChange("franchises", index, e.target.value)
+                  }
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton onClick={() => handleRemoveArrayItem('franchises', index)}>
+                        <IconButton
+                          onClick={() =>
+                            handleRemoveArrayItem("franchises", index)
+                          }
+                        >
                           <DeleteIcon />
                         </IconButton>
                       </InputAdornment>
@@ -372,20 +450,29 @@ export default function ManageGames() {
                   }}
                 />
               ))}
-              <Button onClick={() => handleAddArrayItem('franchises')}>Add Franchise</Button>
+              <Button onClick={() => handleAddArrayItem("franchises")}>
+                Add Franchise
+              </Button>
               <Typography variant="subtitle1">Store Links</Typography>
-              {Object.entries(selectedGame.storeLinks || {}).map(([store, link]) => (
-                <TextField
-                  key={store}
-                  fullWidth
-                  label={store}
-                  value={link}
-                  onChange={(e) => setSelectedGame({
-                    ...selectedGame,
-                    storeLinks: { ...(selectedGame.storeLinks || {}), [store]: e.target.value }
-                  })}
-                />
-              ))}
+              {Object.entries(selectedGame.storeLinks || {}).map(
+                ([store, link]) => (
+                  <TextField
+                    key={store}
+                    fullWidth
+                    label={store}
+                    value={link}
+                    onChange={(e) =>
+                      setSelectedGame({
+                        ...selectedGame,
+                        storeLinks: {
+                          ...(selectedGame.storeLinks || {}),
+                          [store]: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                )
+              )}
             </Box>
           )}
         </DialogContent>
@@ -408,21 +495,25 @@ export default function ManageGames() {
             onChange={(e) => setGenreSearch(e.target.value)}
           />
           <List>
-            {genresList.filter(genre => genre.toLowerCase().includes(genreSearch.toLowerCase())).map((genre) => (
-              <ListItem key={genre} disablePadding>
-                <ListItemButton onClick={() => handleGenreSelection(genre)}>
-                  <ListItemIcon>
-                    <Checkbox
-                      edge="start"
-                      checked={selectedGame?.genres?.includes(genre) || false}
-                      tabIndex={-1}
-                      disableRipple
-                    />
-                  </ListItemIcon>
-                  <ListItemText primary={genre} />
-                </ListItemButton>
-              </ListItem>
-            ))}
+            {genresList
+              .filter((genre) =>
+                genre.toLowerCase().includes(genreSearch.toLowerCase())
+              )
+              .map((genre) => (
+                <ListItem key={genre} disablePadding>
+                  <ListItemButton onClick={() => handleGenreSelection(genre)}>
+                    <ListItemIcon>
+                      <Checkbox
+                        edge="start"
+                        checked={selectedGame?.genres?.includes(genre) || false}
+                        tabIndex={-1}
+                        disableRipple
+                      />
+                    </ListItemIcon>
+                    <ListItemText primary={genre} />
+                  </ListItemButton>
+                </ListItem>
+              ))}
           </List>
         </DialogContent>
         <DialogActions>
@@ -443,21 +534,29 @@ export default function ManageGames() {
             onChange={(e) => setPlatformSearch(e.target.value)}
           />
           <List>
-            {getAllPlatforms().filter(platform => platform.toLowerCase().includes(platformSearch.toLowerCase())).map((platform) => (
-              <ListItem key={platform} disablePadding>
-                <ListItemButton onClick={() => handlePlatformSelection(platform)}>
-                  <ListItemIcon>
-                    <Checkbox
-                      edge="start"
-                      checked={selectedGame?.platforms?.includes(platform) || false}
-                      tabIndex={-1}
-                      disableRipple
-                    />
-                  </ListItemIcon>
-                  <ListItemText primary={platform} />
-                </ListItemButton>
-              </ListItem>
-            ))}
+            {getAllPlatforms()
+              .filter((platform) =>
+                platform.toLowerCase().includes(platformSearch.toLowerCase())
+              )
+              .map((platform) => (
+                <ListItem key={platform} disablePadding>
+                  <ListItemButton
+                    onClick={() => handlePlatformSelection(platform)}
+                  >
+                    <ListItemIcon>
+                      <Checkbox
+                        edge="start"
+                        checked={
+                          selectedGame?.platforms?.includes(platform) || false
+                        }
+                        tabIndex={-1}
+                        disableRipple
+                      />
+                    </ListItemIcon>
+                    <ListItemText primary={platform} />
+                  </ListItemButton>
+                </ListItem>
+              ))}
           </List>
         </DialogContent>
         <DialogActions>

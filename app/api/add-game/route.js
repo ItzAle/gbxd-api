@@ -1,103 +1,25 @@
-import { supabase } from "../../../lib/supabase";
-import slugify from "slugify";
 import { NextResponse } from "next/server";
-import { LRUCache } from "lru-cache";
-import { revalidatePath } from 'next/cache';
-
-// Configuración del rate limiting
-const rateLimit = new LRUCache({
-  max: 500,
-  ttl: 60 * 1000, // 1 minuto
-});
-
-const RATE_LIMIT = 5; // Número máximo de solicitudes por minuto
-
-function rateLimiter(ip) {
-  const tokenCount = rateLimit.get(ip) || 0;
-  if (tokenCount > RATE_LIMIT) {
-    return false;
-  }
-  rateLimit.set(ip, tokenCount + 1);
-  return true;
-}
+import { supabase } from "../../../lib/supabase";
 
 export async function POST(req) {
-  const ip = req.headers.get("x-forwarded-for") || req.ip;
-
-  if (!rateLimiter(ip)) {
-    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
-  }
-
   try {
-    const {
-      name,
-      releaseDate,
-      description,
-      publisher,
-      developer,
-      platforms,
-      genres,
-      coverImageUrl,
-      userId,
-      isNSFW,
-      storeLinks,
-      aliases,
-      franchises,
-      hashtags,
-      images,
-      videos,
-    } = await req.json();
-
-    if (
-      !name ||
-      !releaseDate ||
-      !description ||
-      !publisher ||
-      !developer ||
-      !platforms ||
-      !genres ||
-      !coverImageUrl
-    ) {
-      return NextResponse.json(
-        { error: "All fields are required" },
-        { status: 400 }
-      );
-    }
-
-    const slug = slugify(name, { lower: true, strict: true });
+    console.log("Iniciando proceso de añadir juego");
+    const gameData = await req.json();
+    console.log("Datos del juego recibidos:", JSON.stringify(gameData, null, 2));
 
     const { data, error } = await supabase
       .from('games')
-      .insert({
-        slug,
-        name,
-        releaseDate,
-        description,
-        publisher,
-        developer,
-        platforms,
-        genres,
-        coverImageUrl,
-        addedBy: userId,
-        isNSFW,
-        storeLinks,
-        aliases,
-        franchises,
-        hashtags,
-        images,
-        videos,
-      })
+      .insert([gameData]);
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error al insertar en Supabase:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 
-    revalidatePath('/api/games')
-
-    return NextResponse.json(
-      { message: "Game added successfully" },
-      { status: 200 }
-    );
+    return NextResponse.json({ message: "Juego añadido con éxito", data }, { status: 201 });
   } catch (error) {
-    console.error("Error adding game:", error);
-    return NextResponse.json({ error: "Error adding game" }, { status: 500 });
+    console.error("Error detallado en el servidor:", error);
+    console.error("Stack trace:", error.stack);
+    return NextResponse.json({ error: "Error interno del servidor", details: error.message }, { status: 500 });
   }
 }

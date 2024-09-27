@@ -265,6 +265,8 @@ const GamesList = () => {
           "Cache-Control": "no-cache, no-store, must-revalidate",
           Pragma: "no-cache",
           Expires: "0",
+          "x-api-key":
+            "068e0bdab738565e4fb1ee92930b0fccee65e932aa09c39919e3f087ff9375d1",
         },
       });
       if (!response.ok) {

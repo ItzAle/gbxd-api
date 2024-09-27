@@ -84,7 +84,11 @@ export default function AdminPage() {
 
   const fetchGames = async () => {
     try {
-      const response = await fetch("/api/games");
+      const response = await fetch("/api/games", {
+        headers: {
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY,
+        },
+      });
       const data = await response.json();
       setGames(data);
     } catch (error) {
@@ -96,7 +100,7 @@ export default function AdminPage() {
     try {
       const genresResponse = await fetch("/api/genres");
       const platformsResponse = await fetch("/api/platforms");
-      
+
       if (genresResponse.ok && platformsResponse.ok) {
         const genresData = await genresResponse.json();
         const platformsData = await platformsResponse.json();
@@ -119,6 +123,7 @@ export default function AdminPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY,
         },
         body: JSON.stringify({ gameId }),
       });
@@ -149,6 +154,7 @@ export default function AdminPage() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "x-api-key": process.env.NEXT_PUBLIC_API_KEY,
           },
           body: JSON.stringify({ page, pageSize: 100 }),
         });
@@ -177,7 +183,7 @@ export default function AdminPage() {
     const value = e.target.value;
     setBatchGamesJson(value);
     try {
-      const parsedGames = JSON.parse(value || '[]');
+      const parsedGames = JSON.parse(value || "[]");
       setPreviewGames(Array.isArray(parsedGames) ? parsedGames : [parsedGames]);
     } catch (error) {
       console.error("Error parsing JSON:", error);
@@ -186,7 +192,7 @@ export default function AdminPage() {
   };
 
   const handlePreviewUpdate = (updatedGame) => {
-    const updatedGames = previewGames.map(game => 
+    const updatedGames = previewGames.map((game) =>
       game.name === updatedGame.name ? { ...game, ...updatedGame } : game
     );
     setPreviewGames(updatedGames);
@@ -196,29 +202,31 @@ export default function AdminPage() {
   const handleUploadBatchGames = async () => {
     setUploading(true);
     try {
-      const response = await fetch('/api/add-games-batch', {  // Cambiado aquí
-        method: 'POST',
+      const response = await fetch("/api/add-games-batch", {
+        // Cambiado aquí
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY,
         },
-        body: batchGamesJson,  // Asumiendo que batchGamesJson ya es una cadena JSON válida
+        body: batchGamesJson, // Asumiendo que batchGamesJson ya es una cadena JSON válida
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al subir los juegos');
+        throw new Error(errorData.error || "Error al subir los juegos");
       }
 
       const result = await response.json();
-      console.log('Juegos subidos exitosamente:', result);
+      console.log("Juegos subidos exitosamente:", result);
 
       // Actualizar la lista de juegos después de la subida
       await fetchGames();
 
-      setBatchGamesJson('');
+      setBatchGamesJson("");
       setPreviewGames([]);
     } catch (error) {
-      console.error('Error al subir los juegos:', error);
+      console.error("Error al subir los juegos:", error);
       // Aquí podrías mostrar un mensaje de error al usuario
     } finally {
       setUploading(false);
@@ -232,6 +240,7 @@ export default function AdminPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY,
         },
         body: JSON.stringify({ pin, idToken }),
       });
