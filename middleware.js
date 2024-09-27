@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { supabase } from "./lib/supabase";
 
 const ALLOWED_DOMAINS = process.env.ALLOWED_DOMAINS
-  ? process.env.ALLOWED_DOMAINS.split(",")
+  ? process.env.ALLOWED_DOMAINS.split(",").map(domain => domain.trim())
   : [];
 const PUBLIC_PATHS = process.env.PUBLIC_PATHS
-  ? process.env.PUBLIC_PATHS.split(",")
+  ? process.env.PUBLIC_PATHS.split(",").map(path => path.trim())
   : [];
 
 export async function middleware(request) {
@@ -24,7 +24,15 @@ export async function middleware(request) {
     });
   }
 
-  // Permitir acceso a la ruta raíz y a las páginas de detalles de juegos sin API key
+  // Verificar si la ruta es pública
+  const isPublicPath = PUBLIC_PATHS.some(publicPath => path.startsWith(publicPath));
+
+  if (isPublicPath) {
+    console.log("Ruta pública, permitiendo acceso sin API key");
+    return NextResponse.next();
+  }
+
+  // Rutas específicas que no requieren API key
   if (
     path === "/" ||
     path.startsWith("/game/") ||
@@ -35,40 +43,13 @@ export async function middleware(request) {
     path.startsWith("/api/add-game") ||
     path.startsWith("/games")
   ) {
-    console.log(
-      "Acceso a la ruta raíz o página de detalle de juego, permitiendo sin API key"
-    );
+    console.log("Ruta específica permitida sin API key");
     return NextResponse.next();
   }
 
-  console.log("PUBLIC_PATHS:", process.env.PUBLIC_PATHS);
-
-  // Obtener y procesar las rutas públicas
-  const publicPaths = process.env.PUBLIC_PATHS
-    ? process.env.PUBLIC_PATHS.split(",")
-    : [];
-  console.log("Rutas públicas procesadas:", publicPaths);
-
-  // Verificar si la ruta actual está en la lista de rutas públicas
-  const isPublicPath = publicPaths.some((publicPath) => {
-    const trimmedPath = publicPath.trim();
-    // Usamos startsWith para permitir subrutas
-    const isMatch = path.startsWith(trimmedPath);
-    console.log(`Comprobando ${path} contra ${trimmedPath}: ${isMatch}`);
-    return isMatch;
-  });
-
-  console.log("¿Es ruta pública?", isPublicPath);
-
-  if (isPublicPath) {
-    console.log("Permitiendo acceso sin API key");
-    return NextResponse.next();
-  }
-
+  // Para todas las demás rutas, verificar la API key
   console.log("Requiriendo API key");
-  const apiKey =
-    request.headers.get("x-api-key") ||
-    request.nextUrl.searchParams.get("apiKey");
+  const apiKey = request.headers.get("x-api-key") || request.nextUrl.searchParams.get("apiKey");
 
   if (!apiKey) {
     console.log("No se proporcionó API key, devolviendo error 401");
