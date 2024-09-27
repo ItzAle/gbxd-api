@@ -14,10 +14,21 @@ export async function middleware(request) {
 
   console.log("Middleware ejecutándose para la ruta:", path);
   console.log("Host:", host);
+  console.log("ALLOWED_DOMAINS:", ALLOWED_DOMAINS);
+  console.log("PUBLIC_PATHS:", PUBLIC_PATHS);
 
-  // Verificar si el dominio está permitido
-  if (!ALLOWED_DOMAINS.includes(host)) {
-    console.log("Dominio no permitido:", host);
+  // Permitir localhost para desarrollo
+  if (process.env.NODE_ENV === "development" && (host.includes("localhost") || host.includes("127.0.0.1"))) {
+    console.log("Acceso local permitido en desarrollo");
+    return NextResponse.next();
+  }
+
+  // Extraer el dominio base del host
+  const baseDomain = host.split(":")[0];
+
+  // Verificar si el dominio base está permitido
+  if (!ALLOWED_DOMAINS.some(domain => baseDomain.endsWith(domain))) {
+    console.log("Dominio no permitido:", baseDomain);
     return new NextResponse(JSON.stringify({ error: "Dominio no autorizado" }), {
       status: 403,
       headers: { "Content-Type": "application/json" },
@@ -25,9 +36,7 @@ export async function middleware(request) {
   }
 
   // Verificar si la ruta es pública
-  const isPublicPath = PUBLIC_PATHS.some(publicPath => path.startsWith(publicPath));
-
-  if (isPublicPath) {
+  if (PUBLIC_PATHS.some(publicPath => path.startsWith(publicPath))) {
     console.log("Ruta pública, permitiendo acceso sin API key");
     return NextResponse.next();
   }
