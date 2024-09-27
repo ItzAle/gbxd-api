@@ -132,16 +132,15 @@ export default function Navbar() {
                 </Button>
               ))}
             {user ? (
-              <Box sx={{ display: "flex", alignItems: "center", ml: 2 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", ml: 2, gap: 4 }}
+              >
                 <Link href="/profile">
                   <Avatar
                     src={user.photoURL || undefined}
                     alt={user.displayName || "User avatar"}
                     sx={{ width: 32, height: 32, mr: 1 }}
                   />
-                  <Typography variant="body2" sx={{ mr: 2, color: "white" }}>
-                    {user.displayName || user.email}
-                  </Typography>
                 </Link>
                 <Button
                   variant="outlined"

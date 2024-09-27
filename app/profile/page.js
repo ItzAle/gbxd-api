@@ -81,15 +81,24 @@ export default function ProfilePage() {
           console.log("No API key found for user");
           setApiKey(null);
           setCurrentMonthUsage(null);
+          setError(
+            "No API key found. Please generate one using the button below."
+          );
         }
       } else {
         throw new Error(
-          data.error || "Error desconocido al obtener la API key"
+          data.error || "Unknown error while fetching the API key"
         );
       }
     } catch (err) {
       console.error("Error fetching API key:", err);
-      setError(`Error al obtener los datos de la API key: ${err.message}`);
+      if (err.message.includes("multiple (or no) rows returned")) {
+        setError(
+          "No API key found. Please generate one using the button below."
+        );
+      } else {
+        setError(`Error fetching API key data: ${err.message}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -98,7 +107,7 @@ export default function ProfilePage() {
   const handleKeyGenerated = async (newApiKey) => {
     setApiKey(newApiKey);
     setCurrentMonthUsage(0); // Asumiendo que una nueva key tiene 0 solicitudes
-    setSnackbarMessage("API Key generada con éxito");
+    setSnackbarMessage("API Key generated successfully");
     setSnackbarOpen(true);
     await fetchApiKeyData(); // Refrescar los datos después de generar la key
   };
@@ -190,7 +199,7 @@ export default function ProfilePage() {
                   InputProps={{
                     readOnly: true,
                     endAdornment: (
-                      <Tooltip title="Copiar API Key">
+                      <Tooltip title="Copy API Key">
                         <IconButton onClick={handleCopyApiKey}>
                           <ContentCopyIcon />
                         </IconButton>
@@ -203,10 +212,16 @@ export default function ProfilePage() {
                 </Typography>
               </Box>
             ) : (
-              <GenerateApiKeys
-                userId={user.uid}
-                onKeyGenerated={handleKeyGenerated}
-              />
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  You&apos;ve no yet generated an API key. Generate one to start
+                  using our API.
+                </Typography>
+                <GenerateApiKeys
+                  userId={user.uid}
+                  onKeyGenerated={handleKeyGenerated}
+                />
+              </Box>
             )}
           </Paper>
           <Snackbar
