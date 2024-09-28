@@ -313,7 +313,7 @@ const GamesList = () => {
         (game.releaseDate !== "TBA" &&
           new Date(game.releaseDate).getFullYear().toString() === yearFilter);
       const genreMatch =
-        genreFilter === "all" || game.genres.includes(genreFilter);
+        genreFilter === "all" || (game.genres && game.genres.includes(genreFilter));
       return nameMatch && yearMatch && genreMatch;
     });
 

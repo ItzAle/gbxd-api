@@ -198,7 +198,7 @@ const AddGame = () => {
             }}
           >
             <Typography variant="body1" align="center">
-              Por favor, inicia sesión para acceder a esta página.
+              Please login to access this page.
             </Typography>
           </Box>
         </Container>
@@ -226,12 +226,12 @@ const AddGame = () => {
             }}
           >
             <Typography variant="h5" align="center" gutterBottom>
-              Solicitud en revisión
+              Your submission is pending review.
             </Typography>
             <Typography variant="body1" align="center">
-              Ya has enviado una solicitud para añadir un juego y está pendiente
-              de revisión. Por favor, espera a que se procese antes de enviar
-              otra solicitud.
+              You have already submitted a request to add a game and it is
+              pending review. Please wait for it to be processed before
+              submitting another request.
             </Typography>
           </Box>
           <Button
@@ -240,7 +240,7 @@ const AddGame = () => {
             fullWidth
             onClick={() => router.push("/")}
           >
-            Volver a la página principal
+            Back to the main page
           </Button>
         </Container>
       </ThemeProvider>
