@@ -5,7 +5,10 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const email = searchParams.get('email');
 
+  console.log("Email recibido:", email); // Log para depuración
+
   if (!email) {
+    console.log("Email no proporcionado en la solicitud");
     return NextResponse.json({ isAuthorized: false, error: "Email no proporcionado" }, { status: 400 });
   }
 
@@ -13,8 +16,10 @@ export async function GET(req) {
     const { data, error } = await supabase
       .from('authorized_users')
       .select('email')
-      .eq('email', email)
+      .eq('email', email.toLowerCase())
       .single();
+
+    console.log("Resultado de la consulta:", { data, error }); // Log para depuración
 
     if (error && error.code !== 'PGRST116') {
       throw error;

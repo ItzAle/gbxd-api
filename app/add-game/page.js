@@ -110,6 +110,17 @@ const AddGame = () => {
 
   const [hasPendingSubmission, setHasPendingSubmission] = useState(false);
 
+  const clearPendingSubmission = () => {
+    localStorage.removeItem("gameSubmissionPending");
+    setHasPendingSubmission(false);
+  };
+
+  useEffect(() => {
+    if (isAuthorized) {
+      clearPendingSubmission();
+    }
+  }, [isAuthorized]);
+
   useEffect(() => {
     const checkAuthorization = async () => {
       if (user) {
@@ -127,6 +138,7 @@ const AddGame = () => {
             throw new Error("Error al verificar la autorización");
           }
           const data = await response.json();
+          console.log("Respuesta de autorización:", data); // Añade este log
           setIsAuthorized(data.isAuthorized);
 
           // Verificar si el usuario tiene una solicitud pendiente
