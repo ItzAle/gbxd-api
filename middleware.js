@@ -61,6 +61,19 @@ async function verifyApiKey(apiKey) {
 
 export async function middleware(request) {
   const path = request.nextUrl.pathname;
+  const origin = request.headers.get("origin");
+
+  // Configuración de CORS
+  const headers = new Headers(request.headers);
+  headers.set("Access-Control-Allow-Credentials", "true");
+  headers.set("Access-Control-Allow-Origin", origin || "*");
+  headers.set("Access-Control-Allow-Methods", "GET,OPTIONS,PATCH,DELETE,POST,PUT");
+  headers.set("Access-Control-Allow-Headers", "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, x-api-key");
+
+  // Manejar solicitudes OPTIONS (preflight)
+  if (request.method === "OPTIONS") {
+    return new NextResponse(null, { status: 200, headers });
+  }
 
   // Verificar si la ruta actual está en la lista de rutas protegidas
   if (PROTECTED_API_ROUTES.some(route => path.startsWith(route))) {
@@ -72,7 +85,7 @@ export async function middleware(request) {
       console.log("No se proporcionó API key, devolviendo error 401");
       return new NextResponse(JSON.stringify({ error: "API key is required" }), {
         status: 401,
-        headers: { "Content-Type": "application/json" },
+        headers,
       });
     }
 
@@ -82,7 +95,7 @@ export async function middleware(request) {
       console.log("API key inválida o límite excedido");
       return new NextResponse(JSON.stringify({ error: "Invalid API key or usage limit exceeded" }), {
         status: 401,
-        headers: { "Content-Type": "application/json" },
+        headers,
       });
     }
 
@@ -90,12 +103,19 @@ export async function middleware(request) {
   }
 
   // Para todas las demás rutas, permitir acceso sin restricciones
-  return NextResponse.next();
+  const response = NextResponse.next();
+  
+  // Aplicar los headers de CORS a todas las respuestas
+  Object.entries(headers).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
+
+  return response;
 }
 
 export const config = {
   matcher: [
-    // Aplica el middleware solo a las rutas que comienzan con /api
-    "/api/:path*",
+    // Aplica el middleware a todas las rutas
+    "/(.*)",
   ],
 };
