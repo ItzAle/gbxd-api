@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { supabase } from "../../../lib/supabase";
+import slugify from "slugify";
 
 export async function POST(req) {
   try {
     console.log("Iniciando proceso de añadir juego");
     const gameData = await req.json();
     console.log("Datos del juego recibidos:", JSON.stringify(gameData, null, 2));
+
+    // Generar el slug a partir del nombre del juego
+    const slug = slugify(gameData.name, { lower: true, strict: true });
+    gameData.slug = slug;
 
     const { data, error } = await supabase
       .from('games')
