@@ -41,7 +41,7 @@ export async function GET(request) {
     let { data: games, error } = await supabase
       .from("games")
       .select("*")
-      .or(`name.ilike.%${searchTerm}%, description.ilike.%${searchTerm}%`)
+      .or(`name.ilike.%${searchTerm}%, slug.ilike.%${searchTerm}%`)
       .order("name", { ascending: true });
 
     if (error) {
